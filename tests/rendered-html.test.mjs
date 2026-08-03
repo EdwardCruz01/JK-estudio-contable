@@ -35,3 +35,9 @@ test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
   const payroll = parseSunatXml(xml);
   assert.equal(payroll.employee, "RONALD RUBEN CHAVEZ CALDERON"); assert.equal(payroll.dni, "40654524"); assert.equal(payroll.period, "06/2026"); assert.equal(payroll.incomes.length, 2); assert.equal(payroll.discounts.length, 2); assert.equal(payroll.incomes[0].amount, 1387); assert.equal(payroll.totalIncome, 1500); assert.equal(payroll.totalDiscounts, 193.8); assert.equal(payroll.employerContributions[0].amount, 135); assert.equal(payroll.net, 1306.2);
 });
+
+test("normalizes honorarium items and includes the Supabase persistence schema", async () => {
+  const [{ feeTotal, validFeeItems }, schema] = await Promise.all([import("../public/js/fees.js"), readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8")]);
+  const items = validFeeItems([{ id: "a", description: " Contabilidad mensual ", amount: "850.50" }, { id: "b", description: "", amount: 30 }, { id: "c", description: "Soporte", amount: 0 }]);
+  assert.deepEqual(items, [{ id: "a", description: "Contabilidad mensual", amount: 850.5 }]); assert.equal(feeTotal(items), 850.5); assert.match(schema, /create table public\.honorarios/i); assert.match(schema, /create table public\.plantillas_generadas/i); assert.match(schema, /create trigger on_auth_user_created/i); assert.match(schema, /insert into storage\.buckets/i); assert.match(schema, /row level security/i);
+});

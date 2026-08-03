@@ -2,7 +2,8 @@ import { auth } from "./js/auth.js";
 import { sampleCompanies, sampleDocuments } from "./js/data.js";
 import { storage } from "./js/storage.js";
 import { parseSunatXml } from "./js/xml-parser.js";
-import { downloadFeePdf, downloadPayrollPdf, feeDocument, money, openPrint, payrollDocument } from "./js/templates.js";
+import { downloadFeePdf, downloadPayrollPdf, money, previewFeePdf, previewPayrollPdf } from "./js/templates.js";
+import { defaultFeeGreeting, feeFilename, feeTotal, validFeeItems } from "./js/fees.js";
 
 const root = document.getElementById("vanilla-app");
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -76,3 +77,75 @@ document.addEventListener("click", (event) => {
   event.stopImmediatePropagation();
   downloadHistoryDocument(button.dataset.downloadDoc);
 }, true);
+
+/* Administrative document flows. Kept here so the vanilla app can later swap
+   the local storage adapter for Supabase without changing the screens. */
+const companyBadge = (company, className = "company-avatar") => `<span class="${className}" style="background:${escapeHtml(company?.color || "#b49141")}">${company?.logoData ? `<img src="${escapeHtml(company.logoData)}" alt="Logo de ${escapeHtml(company.name)}">` : initials(company?.name || "JK")}</span>`;
+const feeFormData = () => {
+  state.feeDate = document.getElementById("fee-date")?.value || state.feeDate;
+  state.greeting = document.getElementById("fee-greeting")?.value || state.greeting;
+  state.observations = document.getElementById("fee-observations")?.value || state.observations;
+  return { date: state.feeDate, greeting: state.greeting, observations: state.observations, items: validFeeItems(state.feeItems) };
+};
+const updateFeeTotal = () => root.querySelectorAll("[data-fee-total]").forEach((node) => { node.textContent = money(feeTotal(state.feeItems)); });
+
+function feesViewV2() {
+  const company = state.companies.find((item) => item.id === state.selectedCompany);
+  const total = feeTotal(state.feeItems);
+  return `<div class="page"><div class="page-heading"><div><span class="eyebrow">AUTOMATIZACIÓN · SERVICIOS</span><h1>Generar honorarios</h1><p>Emita un recibo institucional con conceptos, importe total, saludo y observaciones.</p></div><span class="ready-badge"><i></i> Listo para descargar</span></div><div class="generator-layout fee-layout"><section class="panel form-panel"><div class="section-title"><span class="metric-icon small">▣</span><div><h2>Datos del recibo</h2><p>Complete los datos; el PDF usará el logo y color corporativo de la empresa.</p></div></div><label>Empresa cliente<select id="fee-company"><option value="">Selecciona una empresa…</option>${state.companies.filter((item) => item.active).map((item) => `<option value="${item.id}" ${state.selectedCompany === item.id ? "selected" : ""}>${escapeHtml(item.name)} · ${item.ruc}</option>`).join("")}</select></label><label>Fecha de emisión<input id="fee-date" type="date" value="${escapeHtml(state.feeDate)}"></label><div class="items-heading"><label>Conceptos y montos</label><button type="button" class="small-button" data-action="add-fee">＋ Agregar concepto</button></div><div class="fee-items">${state.feeItems.map((item, index) => `<div class="fee-item"><span class="item-number">${index + 1}</span><input data-fee-description="${item.id}" placeholder="Ej. Contabilidad mensual" value="${escapeHtml(item.description)}"><input data-fee-amount="${item.id}" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${item.amount || ""}"><button type="button" class="delete-row" data-remove-fee="${item.id}" aria-label="Eliminar concepto">×</button></div>`).join("")}</div><label>Texto de saludo / solicitud <small>Opcional. Si queda vacío se utilizará un texto formal para la empresa seleccionada.</small><textarea id="fee-greeting" placeholder="Se genera automáticamente al elegir la empresa…">${escapeHtml(state.greeting)}</textarea></label><label>Observaciones <small>Opcional</small><textarea id="fee-observations" placeholder="Notas adicionales…">${escapeHtml(state.observations)}</textarea></label><div class="form-footer"><div class="total-inline"><span>Total calculado</span><b data-fee-total>${money(total)}</b></div><div class="generator-actions compact"><button class="secondary-button" data-action="preview-fee" ${!company ? "disabled" : ""}>◉ Vista previa PDF</button><button class="gold-button" data-action="download-fee" ${!company ? "disabled" : ""}>↓ Generar y descargar</button></div></div></section><section class="panel live-preview"><span class="eyebrow">PREVISUALIZACIÓN</span><h2>Recibo por honorarios</h2><div class="mini-document"><div class="mini-head">${companyBadge(company, "mini-logo")}<span><b>${escapeHtml(company?.name || "Selecciona una empresa")}</b><small>${escapeHtml(company?.ruc || "RUC pendiente")}</small></span></div><div class="mini-divider"></div><b>“Año de la Esperanza y el Fortalecimiento de la Democracia”</b><p>${escapeHtml(state.greeting || (company ? defaultFeeGreeting(company) : "El saludo institucional aparecerá aquí."))}</p>${state.feeItems.map((item, index) => `<div class="mini-row"><span>${index + 1}. ${escapeHtml(item.description || "Concepto pendiente")}</span><b>${money(item.amount)}</b></div>`).join("")}<div class="mini-total" style="background:${escapeHtml(company?.color || "#b49141")}"><span>TOTAL A PAGAR</span><b data-fee-total>${money(total)}</b></div></div></section></div></div>`;
+}
+
+function bindV2() {
+  root.querySelectorAll("[data-scroll]").forEach((item) => item.addEventListener("click", (event) => { event.preventDefault(); document.getElementById(item.dataset.scroll)?.scrollIntoView({ behavior: "smooth" }); root.querySelector(".public-links")?.classList.remove("is-open"); }));
+  root.querySelectorAll("[data-action]").forEach((item) => item.addEventListener("click", () => action(item.dataset.action)));
+  root.querySelectorAll("[data-view]").forEach((item) => item.addEventListener("click", () => { state.view = item.dataset.view; render(); }));
+  const authForm = document.getElementById("auth-form"); if (authForm) authForm.addEventListener("submit", submitAuth);
+  const xml = document.getElementById("xml-file"); if (xml) xml.addEventListener("change", readXml);
+  const templateCompany = document.getElementById("template-company"); if (templateCompany) templateCompany.addEventListener("change", () => { state.selectedCompany = templateCompany.value; render(); });
+  const feeCompany = document.getElementById("fee-company"); if (feeCompany) feeCompany.addEventListener("change", () => { state.selectedCompany = feeCompany.value; const company = state.companies.find((item) => item.id === state.selectedCompany); if (!state.greeting.trim() && company) state.greeting = defaultFeeGreeting(company); render(); });
+  root.querySelectorAll("[data-fee-description]").forEach((input) => input.addEventListener("input", () => { const item = state.feeItems.find((fee) => fee.id === input.dataset.feeDescription); if (item) item.description = input.value; }));
+  root.querySelectorAll("[data-fee-amount]").forEach((input) => input.addEventListener("input", () => { const item = state.feeItems.find((fee) => fee.id === input.dataset.feeAmount); if (item) item.amount = Number(input.value) || 0; updateFeeTotal(); }));
+  ["fee-date", "fee-greeting", "fee-observations"].forEach((id) => document.getElementById(id)?.addEventListener("input", feeFormData));
+  root.querySelectorAll("[data-remove-fee]").forEach((item) => item.addEventListener("click", () => { if (state.feeItems.length > 1) { state.feeItems = state.feeItems.filter((fee) => fee.id !== item.dataset.removeFee); render(); } }));
+  root.querySelectorAll("[data-delete-doc]").forEach((item) => item.addEventListener("click", () => { if (confirm("¿Eliminar este archivo del historial?")) { state.documents = state.documents.filter((doc) => doc.id !== item.dataset.deleteDoc); storage.saveDocuments(state.documents); render(); } }));
+  root.querySelectorAll("[data-edit-company]").forEach((item) => item.addEventListener("click", () => { state.editingCompany = state.companies.find((company) => company.id === item.dataset.editCompany); renderCompanyModal(); }));
+  root.querySelectorAll("[data-delete-company]").forEach((item) => item.addEventListener("click", () => { if (confirm("¿Eliminar esta empresa?")) { state.companies = state.companies.filter((company) => company.id !== item.dataset.deleteCompany); storage.saveCompanies(state.companies); render(); } }));
+}
+
+async function generatePayrollV2(previewOnly) {
+  const company = state.companies.find((item) => item.id === state.selectedCompany);
+  if (!company || !state.payroll) return alert("Primero cargue un XML válido y seleccione una empresa.");
+  const filename = `Boleta-${state.payroll.period}`;
+  if (previewOnly) { if (!await previewPayrollPdf(company, state.payroll, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+  try { await downloadPayrollPdf(company, state.payroll, filename); state.documents.unshift({ id: `doc-${Date.now()}`, type: "boleta", title: `Boleta de pago · ${state.payroll.period}`, companyId: company.id, companyName: company.name, period: state.payroll.period, amount: state.payroll.net, createdAt: new Date().toISOString(), payload: { payroll: state.payroll } }); storage.saveDocuments(state.documents); showDownloadNotice("Boleta PDF descargada y guardada en el historial."); } catch { alert("No se pudo generar la boleta PDF. Inténtelo nuevamente."); }
+}
+
+async function generateFeeV2(previewOnly) {
+  const company = state.companies.find((item) => item.id === state.selectedCompany);
+  if (!company) return alert("Seleccione una empresa para generar el recibo.");
+  const data = feeFormData(); if (!data.greeting.trim()) data.greeting = defaultFeeGreeting(company);
+  if (!data.items.length) return alert("Agregue al menos un concepto con un monto mayor a cero.");
+  const filename = feeFilename(company, data.date);
+  if (previewOnly) { if (!await previewFeePdf(company, data, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+  try { await downloadFeePdf(company, data, filename); const amount = feeTotal(data.items); state.documents.unshift({ id: `doc-${Date.now()}`, type: "honorarios", title: `Honorarios · ${data.items[0].description}`, companyId: company.id, companyName: company.name, period: data.date, amount, createdAt: new Date().toISOString(), payload: { fee: data } }); storage.saveDocuments(state.documents); showDownloadNotice("Recibo de honorarios PDF descargado y guardado en el historial."); } catch { alert("No se pudo generar el recibo PDF. Inténtelo nuevamente."); }
+}
+
+function renderCompanyModalV2() {
+  const company = state.editingCompany || { id: `company-${Date.now()}`, name: "", legalName: "", ruc: "", address: "", phone: "", email: "", representative: "", color: "#b49141", active: true, createdAt: new Date().toISOString().slice(0, 10) };
+  root.insertAdjacentHTML("beforeend", `<div class="modal-backdrop" id="company-modal"><form class="modal company-modal" id="company-form"><button type="button" class="close-button" data-action="close-modal">×</button><span class="eyebrow">IDENTIDAD DEL CLIENTE</span><h2>${state.editingCompany ? "Editar empresa" : "Nueva empresa"}</h2><p class="modal-copy">Registre los datos que aparecerán en boletas y recibos por honorarios.</p><div class="form-grid"><label>Razón social<input required name="name" value="${escapeHtml(company.name)}"></label><label>RUC<input required name="ruc" pattern="[0-9]{11}" inputmode="numeric" title="Ingrese los 11 dígitos del RUC" value="${escapeHtml(company.ruc)}"></label><label>Representante<input required name="representative" value="${escapeHtml(company.representative)}"></label><label>Correo<input required type="email" name="email" value="${escapeHtml(company.email)}"></label><label>Teléfono<input name="phone" value="${escapeHtml(company.phone)}"></label><label>Dirección<input required name="address" value="${escapeHtml(company.address)}"></label><label>Color corporativo<span class="color-control"><input id="company-color" name="color" type="color" value="${escapeHtml(company.color || "#b49141")}"><span id="color-swatch" class="color-swatch" style="background:${escapeHtml(company.color || "#b49141")}"></span><output id="color-value">${escapeHtml(company.color || "#b49141")}</output></span></label><label>Estado<select name="active"><option value="true" ${company.active ? "selected" : ""}>Activa</option><option value="false" ${!company.active ? "selected" : ""}>Inactiva</option></select></label></div><div class="logo-upload"><div class="logo-preview">${company.logoData ? `<img src="${escapeHtml(company.logoData)}" alt="Vista previa del logo">` : "Sin logo"}</div><div><label class="file-button" for="company-logo">Elegir logo<input ${company.logoData ? "" : "required"} id="company-logo" name="logo" type="file" accept="image/png,image/jpeg"></label><small>PNG o JPG. Se usará en boletas y honorarios.</small></div></div><div class="modal-actions"><button type="button" class="secondary-button" data-action="close-modal">Cancelar</button><button class="gold-button">Guardar empresa</button></div></form></div>`);
+  const form = document.getElementById("company-form"); form.addEventListener("submit", (event) => saveCompany(event, company)); document.getElementById("company-color")?.addEventListener("input", (event) => { document.getElementById("color-swatch").style.background = event.target.value; document.getElementById("color-value").textContent = event.target.value.toUpperCase(); }); root.querySelectorAll('[data-action="close-modal"]').forEach((button) => button.addEventListener("click", () => document.getElementById("company-modal")?.remove()));
+}
+
+function saveCompanyV2(event, original) {
+  event.preventDefault(); const form = event.currentTarget; const data = Object.fromEntries(new FormData(form).entries()); const ruc = String(data.ruc || "").trim(); const color = String(data.color || "").toUpperCase();
+  if (!/^\d{11}$/.test(ruc)) return alert("El RUC debe contener exactamente 11 dígitos."); if (!/^#[0-9A-F]{6}$/.test(color)) return alert("Seleccione un color corporativo válido."); if (state.companies.some((item) => item.id !== original.id && item.ruc === ruc)) return alert("Ya existe una empresa registrada con ese RUC.");
+  const file = form.logo.files[0]; const save = (logoData = original.logoData) => { if (!logoData) return alert("Debe cargar el logo de la empresa."); const company = { ...original, ...data, name: String(data.name).trim(), legalName: String(data.name).trim(), ruc, color, logoData, active: data.active === "true" }; state.companies = [...state.companies.filter((item) => item.id !== company.id), company]; storage.saveCompanies(state.companies); state.editingCompany = null; document.getElementById("company-modal")?.remove(); render(); };
+  if (file) { const reader = new FileReader(); reader.onload = () => save(reader.result); reader.readAsDataURL(file); } else save();
+}
+
+feesView = feesViewV2;
+bind = bindV2;
+generatePayroll = generatePayrollV2;
+generateFee = generateFeeV2;
+renderCompanyModal = renderCompanyModalV2;
+saveCompany = saveCompanyV2;
