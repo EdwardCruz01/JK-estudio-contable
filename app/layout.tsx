@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="es"><body>{children}<link rel="stylesheet" href="/styles.css" /><link rel="stylesheet" href="/corporate.css" /><link rel="stylesheet" href="/admin-safety.css" /><script src="/corporate-pages.js"></script><script type="module" src="/app.js"></script></body></html>;
+  return <html lang="es"><body>{children}<link rel="stylesheet" href="/styles.css" /><link rel="stylesheet" href="/corporate.css" /><link rel="stylesheet" href="/admin-safety.css" /><script src="/corporate-pages.js"></script><script src="/supabase-config.js"></script><script type="module" src="/app.js"></script></body></html>;
 }

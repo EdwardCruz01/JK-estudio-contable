@@ -37,7 +37,7 @@ test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
 });
 
 test("normalizes honorarium items and includes the Supabase persistence schema", async () => {
-  const [{ feeTotal, validFeeItems }, schema] = await Promise.all([import("../public/js/fees.js"), readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8")]);
+  const [{ feeTotal, validFeeItems }, schema, migration, client] = await Promise.all([import("../public/js/fees.js"), readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8"), readFile(new URL("../supabase/migration-001-enable-app-connection.sql", import.meta.url), "utf8"), import("../public/js/supabase-client.js")]);
   const items = validFeeItems([{ id: "a", description: " Contabilidad mensual ", amount: "850.50" }, { id: "b", description: "", amount: 30 }, { id: "c", description: "Soporte", amount: 0 }]);
-  assert.deepEqual(items, [{ id: "a", description: "Contabilidad mensual", amount: 850.5 }]); assert.equal(feeTotal(items), 850.5); assert.match(schema, /create table public\.honorarios/i); assert.match(schema, /create table public\.plantillas_generadas/i); assert.match(schema, /create trigger on_auth_user_created/i); assert.match(schema, /insert into storage\.buckets/i); assert.match(schema, /row level security/i);
+  assert.deepEqual(items, [{ id: "a", description: "Contabilidad mensual", amount: 850.5 }]); assert.equal(feeTotal(items), 850.5); assert.equal(client.supabase.configured, false); assert.match(schema, /create table public\.honorarios/i); assert.match(schema, /create table public\.plantillas_generadas/i); assert.match(schema, /create trigger on_auth_user_created/i); assert.match(schema, /insert into storage\.buckets/i); assert.match(schema, /row level security/i); assert.match(migration, /add column if not exists empresa_id/i); assert.match(migration, /insert into storage\.buckets/i);
 });

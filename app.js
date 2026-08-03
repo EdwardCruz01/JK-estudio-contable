@@ -1,4 +1,5 @@
 import { auth } from "./js/auth.js";
+import { supabase } from "./js/supabase-client.js";
 import { sampleCompanies, sampleDocuments } from "./js/data.js";
 import { storage } from "./js/storage.js";
 import { parseSunatXml } from "./js/xml-parser.js";
@@ -149,3 +150,62 @@ generatePayroll = generatePayrollV2;
 generateFee = generateFeeV2;
 renderCompanyModal = renderCompanyModalV2;
 saveCompany = saveCompanyV2;
+
+async function loadRemoteState() {
+  if (!supabase.configured || !state.session?.accessToken) return;
+  try {
+    const [companies, documents] = await Promise.all([supabase.companies(state.session.accessToken), supabase.documents(state.session.accessToken)]);
+    state.companies = companies; state.documents = documents; storage.saveCompanies(companies); storage.saveDocuments(documents); render();
+  } catch (error) { console.warn("No se pudo sincronizar Supabase:", error.message); }
+}
+
+async function submitAuthV2(event) {
+  event.preventDefault(); const data = Object.fromEntries(new FormData(event.target).entries()); const error = document.getElementById("auth-error"); const submit = event.target.querySelector("button[type=submit]"); if (submit) submit.disabled = true;
+  const result = state.authMode === "register" ? await auth.register(data) : await auth.login(data.email, data.password);
+  if (submit) submit.disabled = false; if (result.error) { error.innerHTML = `<div class="auth-error">${escapeHtml(result.error)}</div>`; return; }
+  state.session = result.session; state.mode = result.session.role === "admin" ? "admin" : "client"; render(); await loadRemoteState();
+}
+
+async function saveCompanyV3(event, original) {
+  event.preventDefault(); const form = event.currentTarget; const data = Object.fromEntries(new FormData(form).entries()); const ruc = String(data.ruc || "").trim(); const color = String(data.color || "").toUpperCase();
+  if (!/^\d{11}$/.test(ruc)) return alert("El RUC debe contener exactamente 11 dígitos."); if (!/^#[0-9A-F]{6}$/.test(color)) return alert("Seleccione un color corporativo válido."); if (state.companies.some((item) => item.id !== original.id && item.ruc === ruc)) return alert("Ya existe una empresa registrada con ese RUC.");
+  const file = form.logo.files[0]; const localLogo = file ? await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); }) : original.logoData; const id = supabase.configured && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(original.id) ? crypto.randomUUID() : original.id; const company = { ...original, ...data, id, name: String(data.name).trim(), legalName: String(data.name).trim(), ruc, color, logoData: localLogo, active: data.active === "true" };
+  try {
+    const saved = supabase.configured ? await supabase.saveCompany(company, file, state.session?.accessToken) : company;
+    state.companies = [...state.companies.filter((item) => item.id !== saved.id), saved]; storage.saveCompanies(state.companies); state.editingCompany = null; document.getElementById("company-modal")?.remove(); render();
+  } catch (error) { alert(`No se pudo guardar la empresa: ${error.message}`); }
+}
+
+async function persistGeneratedDocument(document, blob) {
+  if (!supabase.configured) return document;
+  return supabase.saveDocument(document, blob, state.session?.accessToken, state.session?.id);
+}
+
+async function generatePayrollV3(previewOnly) {
+  const company = state.companies.find((item) => item.id === state.selectedCompany); if (!company || !state.payroll) return alert("Primero cargue un XML válido y seleccione una empresa."); const filename = `Boleta-${state.payroll.period}`;
+  if (previewOnly) { if (!await previewPayrollPdf(company, state.payroll, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+  try { const blob = await downloadPayrollPdf(company, state.payroll, filename); let document = { id: `doc-${Date.now()}`, type: "boleta", title: `Boleta de pago · ${state.payroll.period}`, companyId: company.id, companyName: company.name, period: state.payroll.period, amount: state.payroll.net, createdAt: new Date().toISOString(), payload: { payroll: state.payroll } }; document = await persistGeneratedDocument(document, blob); state.documents.unshift(document); storage.saveDocuments(state.documents); showDownloadNotice("Boleta PDF descargada y guardada en el historial."); } catch (error) { alert(`La boleta se descargó, pero no se pudo guardar en Supabase: ${error.message}`); }
+}
+
+async function generateFeeV3(previewOnly) {
+  const company = state.companies.find((item) => item.id === state.selectedCompany); if (!company) return alert("Seleccione una empresa para generar el recibo."); const data = feeFormData(); if (!data.greeting.trim()) data.greeting = defaultFeeGreeting(company); if (!data.items.length) return alert("Agregue al menos un concepto con un monto mayor a cero."); const filename = feeFilename(company, data.date);
+  if (previewOnly) { if (!await previewFeePdf(company, data, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+  try { const blob = await downloadFeePdf(company, data, filename); let document = { id: `doc-${Date.now()}`, type: "honorarios", title: `Honorarios · ${data.items[0].description}`, companyId: company.id, companyName: company.name, period: data.date, amount: feeTotal(data.items), createdAt: new Date().toISOString(), payload: { fee: data } }; document = await persistGeneratedDocument(document, blob); state.documents.unshift(document); storage.saveDocuments(state.documents); showDownloadNotice("Recibo de honorarios PDF descargado y guardado en el historial."); } catch (error) { alert(`El recibo se descargó, pero no se pudo guardar en Supabase: ${error.message}`); }
+}
+
+async function deleteHistoryDocument(documentId) {
+  const document = state.documents.find((item) => item.id === documentId); if (!document || !confirm("¿Eliminar este archivo del historial?")) return;
+  try { if (supabase.configured) await supabase.deleteDocument(document, state.session?.accessToken); state.documents = state.documents.filter((item) => item.id !== documentId); storage.saveDocuments(state.documents); render(); } catch (error) { alert(`No se pudo eliminar el documento: ${error.message}`); }
+}
+
+function bindV3() {
+  root.querySelectorAll("[data-delete-doc]").forEach((item) => item.addEventListener("click", (event) => { event.stopImmediatePropagation(); deleteHistoryDocument(item.dataset.deleteDoc); }));
+  bindV2();
+}
+
+submitAuth = submitAuthV2;
+saveCompany = saveCompanyV3;
+generatePayroll = generatePayrollV3;
+generateFee = generateFeeV3;
+bind = bindV3;
+loadRemoteState();
