@@ -50,10 +50,17 @@ export const supabase = {
       logoPath = `${company.id}/logo.${suffixFromFile(file)}`;
       await request(`/storage/v1/object/logos/${logoPath}`, { method: "POST", headers: { "Content-Type": file.type, "x-upsert": "true" }, body: file }, token);
     }
-    if (!logoPath) throw new Error("Debe cargar el logo de la empresa.");
+    if (!logoPath) logoPath = "sin-logo";
     const body = { id: company.id, nombre: company.name, razon_social: company.legalName || company.name, ruc: company.ruc, direccion: company.address, distrito: company.district || null, provincia: company.province || null, departamento: company.department || null, telefono: company.phone || null, correo: company.email || null, representante: company.representative || null, logo_url: logoPath, color_corporativo: company.color, estado: company.active };
     const rows = await request("/rest/v1/empresas?on_conflict=id", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" }, body: JSON.stringify(body) }, token);
     return { ...companyFromRow(rows[0]), logoData: await signedUrl(rows[0].logo_url, token).catch(() => "") };
+  },
+  async deleteCompany(company, token) {
+    const rows = await request(`/rest/v1/empresas?id=eq.${encodeURIComponent(company.id)}`, { method: "DELETE", headers: { Prefer: "return=representation" } }, token);
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error("No se encontró la empresa o no tiene permisos para eliminarla.");
+    if (company.logoPath && !["sin-logo", "__sin_logo__"].includes(company.logoPath)) {
+      await request(`/storage/v1/object/logos/${encodeURIComponent(company.logoPath).replace(/%2F/g, "/")}`, { method: "DELETE" }, token).catch(() => {});
+    }
   },
   async saveDocument(document, blob, token, userId) {
     const storagePath = `${userId}/${crypto.randomUUID()}.pdf`;

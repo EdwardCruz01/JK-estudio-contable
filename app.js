@@ -133,7 +133,7 @@ async function generateFeeV2(previewOnly) {
 
 function renderCompanyModalV2() {
   const company = state.editingCompany || { id: `company-${Date.now()}`, name: "", legalName: "", ruc: "", address: "", phone: "", email: "", representative: "", color: "#b49141", active: true, createdAt: new Date().toISOString().slice(0, 10) };
-  root.insertAdjacentHTML("beforeend", `<div class="modal-backdrop" id="company-modal"><form class="modal company-modal" id="company-form"><button type="button" class="close-button" data-action="close-modal">×</button><span class="eyebrow">IDENTIDAD DEL CLIENTE</span><h2>${state.editingCompany ? "Editar empresa" : "Nueva empresa"}</h2><p class="modal-copy">Registre los datos que aparecerán en boletas y recibos por honorarios.</p><div class="form-grid"><label>Razón social<input required name="name" value="${escapeHtml(company.name)}"></label><label>RUC<input required name="ruc" pattern="[0-9]{11}" inputmode="numeric" title="Ingrese los 11 dígitos del RUC" value="${escapeHtml(company.ruc)}"></label><label>Representante<input required name="representative" value="${escapeHtml(company.representative)}"></label><label>Correo<input required type="email" name="email" value="${escapeHtml(company.email)}"></label><label>Teléfono<input name="phone" value="${escapeHtml(company.phone)}"></label><label>Dirección<input required name="address" value="${escapeHtml(company.address)}"></label><label>Color corporativo<span class="color-control"><input id="company-color" name="color" type="color" value="${escapeHtml(company.color || "#b49141")}"><span id="color-swatch" class="color-swatch" style="background:${escapeHtml(company.color || "#b49141")}"></span><output id="color-value">${escapeHtml(company.color || "#b49141")}</output></span></label><label>Estado<select name="active"><option value="true" ${company.active ? "selected" : ""}>Activa</option><option value="false" ${!company.active ? "selected" : ""}>Inactiva</option></select></label></div><div class="logo-upload"><div class="logo-preview">${company.logoData ? `<img src="${escapeHtml(company.logoData)}" alt="Vista previa del logo">` : "Sin logo"}</div><div><label class="file-button" for="company-logo">Elegir logo<input ${company.logoData ? "" : "required"} id="company-logo" name="logo" type="file" accept="image/png,image/jpeg"></label><small>PNG o JPG. Se usará en boletas y honorarios.</small></div></div><div class="modal-actions"><button type="button" class="secondary-button" data-action="close-modal">Cancelar</button><button class="gold-button">Guardar empresa</button></div></form></div>`);
+  root.insertAdjacentHTML("beforeend", `<div class="modal-backdrop" id="company-modal"><form class="modal company-modal" id="company-form"><button type="button" class="close-button" data-action="close-modal">×</button><span class="eyebrow">IDENTIDAD DEL CLIENTE</span><h2>${state.editingCompany ? "Editar empresa" : "Nueva empresa"}</h2><p class="modal-copy">Registre los datos que aparecerán en boletas y recibos por honorarios.</p><div class="form-grid"><label>Razón social<input required name="name" value="${escapeHtml(company.name)}"></label><label>RUC<input required name="ruc" pattern="[0-9]{11}" inputmode="numeric" title="Ingrese los 11 dígitos del RUC" value="${escapeHtml(company.ruc)}"></label><label>Representante<input required name="representative" value="${escapeHtml(company.representative)}"></label><label>Correo<input required type="email" name="email" value="${escapeHtml(company.email)}"></label><label>Teléfono<input name="phone" value="${escapeHtml(company.phone)}"></label><label>Dirección<input required name="address" value="${escapeHtml(company.address)}"></label><label>Color corporativo<span class="color-control"><input id="company-color" name="color" type="color" value="${escapeHtml(company.color || "#b49141")}"><span id="color-swatch" class="color-swatch" style="background:${escapeHtml(company.color || "#b49141")}"></span><output id="color-value">${escapeHtml(company.color || "#b49141")}</output></span></label><label>Estado<select name="active"><option value="true" ${company.active ? "selected" : ""}>Activa</option><option value="false" ${!company.active ? "selected" : ""}>Inactiva</option></select></label></div><div class="logo-upload"><div class="logo-preview">${company.logoData ? `<img src="${escapeHtml(company.logoData)}" alt="Vista previa del logo">` : "Sin logo"}</div><div><label class="file-button" for="company-logo">Elegir logo<input id="company-logo" name="logo" type="file" accept="image/png,image/jpeg"></label><small>PNG o JPG. Se usará en boletas y honorarios.</small></div></div><div class="modal-actions"><button type="button" class="secondary-button" data-action="close-modal">Cancelar</button><button class="gold-button">Guardar empresa</button></div></form></div>`);
   const form = document.getElementById("company-form"); form.addEventListener("submit", (event) => saveCompany(event, company)); document.getElementById("company-color")?.addEventListener("input", (event) => { document.getElementById("color-swatch").style.background = event.target.value; document.getElementById("color-value").textContent = event.target.value.toUpperCase(); }); root.querySelectorAll('[data-action="close-modal"]').forEach((button) => button.addEventListener("click", () => document.getElementById("company-modal")?.remove()));
 }
 
@@ -259,3 +259,27 @@ function bindV4() {
 generatePayroll = generatePayrollV4;
 generateFee = generateFeeV4;
 bind = bindV4;
+
+async function deleteCompanyV2(companyId) {
+  const company = state.companies.find((item) => item.id === companyId);
+  if (!company || !confirm(`¿Eliminar la empresa ${company.name}?`)) return;
+  try {
+    if (supabase.configured) await supabase.deleteCompany(company, state.session?.accessToken);
+    state.companies = state.companies.filter((item) => item.id !== companyId);
+    if (state.selectedCompany === companyId) state.selectedCompany = "";
+    storage.saveCompanies(state.companies);
+    render();
+  } catch (error) {
+    alert(`No se pudo eliminar la empresa: ${error.message}`);
+  }
+}
+
+function bindV5() {
+  root.querySelectorAll("[data-delete-company]").forEach((item) => item.addEventListener("click", (event) => {
+    event.stopImmediatePropagation();
+    deleteCompanyV2(item.dataset.deleteCompany);
+  }));
+  bindV4();
+}
+
+bind = bindV5;
