@@ -41,6 +41,8 @@ on conflict (id) do update set public = false, file_size_limit = excluded.file_s
 
 drop policy if exists "empresas_authenticated_read" on public.empresas;
 drop policy if exists "empresas_admin_write" on public.empresas;
+drop policy if exists "empresas_lectura_autorizada" on public.empresas;
+drop policy if exists "empresas_solo_admin" on public.empresas;
 create policy "empresas_lectura_autorizada" on public.empresas for select to authenticated using (public.is_admin() or exists (select 1 from public.usuarios u where u.id = auth.uid() and u.empresa_id = empresas.id));
 create policy "empresas_solo_admin" on public.empresas for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
