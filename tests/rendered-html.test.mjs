@@ -19,3 +19,13 @@ test("keeps vanilla modules for authentication, XML, templates and storage", asy
   ]);
   assert.match(auth, /admin@estudiojk\.com\.pe/); assert.match(auth, /register/); assert.match(parser, /DOMParser/); assert.match(parser, /parseSunatXml/); assert.match(templates, /payrollDocument/); assert.match(templates, /feeDocument/); assert.match(templates, /window\.open/); assert.match(storage, /localStorage/); assert.match(supabaseSchema, /create table public\.plantillas_generadas/i); assert.match(supabaseSchema, /create table public\.honorarios/i); await access(new URL("../public/hero-office.png", import.meta.url)); assert.match(publicHtml, /app\.js/);
 });
+
+test("ships the multi-section corporate site and supplied image assets", async () => {
+  const [corporateJs, corporateCss] = await Promise.all([
+    readFile(new URL("../public/corporate-pages.js", import.meta.url), "utf8"),
+    readFile(new URL("../public/corporate.css", import.meta.url), "utf8"),
+  ]);
+  for (const word of ["Nosotros", "Servicios", "Equipo", "Contacto", "Contabilidad General", "Outsourcing Contable"]) assert.match(corporateJs, new RegExp(word));
+  assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/);
+  await Promise.all(["hero-accountant.png", "founder-javier.png", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
+});
