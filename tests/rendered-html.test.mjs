@@ -17,7 +17,7 @@ test("keeps vanilla modules for authentication, XML, templates and storage", asy
   const [auth, parser, templates, storage, supabaseSchema, publicHtml] = await Promise.all([
     readFile(new URL("../public/js/auth.js", import.meta.url), "utf8"), readFile(new URL("../public/js/xml-parser.js", import.meta.url), "utf8"), readFile(new URL("../public/js/templates.js", import.meta.url), "utf8"), readFile(new URL("../public/js/storage.js", import.meta.url), "utf8"), readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8"), readFile(new URL("../public/index.html", import.meta.url), "utf8"),
   ]);
-  assert.match(auth, /admin@estudiojk\.com\.pe/); assert.match(auth, /register/); assert.match(parser, /DOMParser/); assert.match(parser, /parseSunatXml/); assert.match(templates, /payrollDocument/); assert.match(templates, /feeDocument/); assert.match(templates, /downloadPayrollPdf/); assert.match(templates, /downloadFeePdf/); assert.match(templates, /company\.logoData/); assert.match(templates, /company\.color/); assert.match(templates, /application\/pdf/); assert.match(storage, /localStorage/); assert.match(supabaseSchema, /create table public\.plantillas_generadas/i); assert.match(supabaseSchema, /create table public\.honorarios/i); await access(new URL("../public/hero-office.png", import.meta.url)); assert.match(publicHtml, /app\.js/);
+  assert.match(auth, /admin@estudiojk\.com\.pe/); assert.match(auth, /register/); assert.match(parser, /ss:Index/); assert.match(parser, /parseSunatXml/); assert.match(templates, /payrollDocument/); assert.match(templates, /feeDocument/); assert.match(templates, /downloadPayrollPdf/); assert.match(templates, /downloadFeePdf/); assert.match(templates, /company\.logoData/); assert.match(templates, /company\.color/); assert.match(templates, /application\/pdf/); assert.match(storage, /localStorage/); assert.match(supabaseSchema, /create table public\.plantillas_generadas/i); assert.match(supabaseSchema, /create table public\.honorarios/i); await access(new URL("../public/hero-office.png", import.meta.url)); assert.match(publicHtml, /app\.js/);
 });
 
 test("ships the multi-section corporate site and supplied image assets", async () => {
@@ -28,4 +28,10 @@ test("ships the multi-section corporate site and supplied image assets", async (
   for (const word of ["Nosotros", "Servicios", "Equipo", "Contacto", "Contabilidad General", "Outsourcing Contable"]) assert.match(corporateJs, new RegExp(word));
   assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/);
   await Promise.all(["hero-accountant.png", "founder-javier.png", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
+});
+
+test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
+  const [xml, { parseSunatXml }] = await Promise.all([readFile(new URL("./fixtures/plame-r08.xml", import.meta.url), "utf8"), import("../public/js/xml-parser.js")]);
+  const payroll = parseSunatXml(xml);
+  assert.equal(payroll.employee, "RONALD RUBEN CHAVEZ CALDERON"); assert.equal(payroll.dni, "40654524"); assert.equal(payroll.period, "06/2026"); assert.equal(payroll.incomes.length, 2); assert.equal(payroll.discounts.length, 2); assert.equal(payroll.incomes[0].amount, 1387); assert.equal(payroll.totalIncome, 1500); assert.equal(payroll.totalDiscounts, 193.8); assert.equal(payroll.employerContributions[0].amount, 135); assert.equal(payroll.net, 1306.2);
 });

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><ss:Worksheet ss:Name="SUNAT-PDT"><ss:Table>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>RUC : 20489725437</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Empleador : CORPORACIÓN CHÁVEZ E.I.R.L.</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Periodo : 06/2026</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Documento de Identidad</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>DNI</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>40654524</ss:Data></ss:Cell><ss:Cell ss:Index="4"><ss:Data>RONALD RUBEN CHAVEZ CALDERON</ss:Data></ss:Cell><ss:Cell ss:Index="8"><ss:Data>ACTIVO</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Fecha de Ingreso</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>01/02/2013</ss:Data></ss:Cell><ss:Cell ss:Index="4"><ss:Data>EJECUTIVO</ss:Data></ss:Cell><ss:Cell ss:Index="6"><ss:Data>SPP HORIZONTE</ss:Data></ss:Cell><ss:Cell ss:Index="8"><ss:Data>594681RCCVD1</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Días Laborados</ss:Data></ss:Cell></ss:Row>
+<ss:Row></ss:Row><ss:Row><ss:Cell ss:Index="2"><ss:Data>30</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>0</ss:Data></ss:Cell><ss:Cell ss:Index="4"><ss:Data>0</ss:Data></ss:Cell><ss:Cell ss:Index="5"><ss:Data>Domiciliado</ss:Data></ss:Cell><ss:Cell ss:Index="6"><ss:Data>200</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Ingresos</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>0121</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>REMUNERACIÓN O JORNAL BÁSICO</ss:Data></ss:Cell><ss:Cell ss:Index="7"><ss:Data>1387.00</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>0201</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>ASIGNACIÓN FAMILIAR</ss:Data></ss:Cell><ss:Cell ss:Index="7"><ss:Data>113.00</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Descuentos</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>0601</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>COMISIÓN AFP PORCENTUAL</ss:Data></ss:Cell><ss:Cell ss:Index="8"><ss:Data>23.25</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>0608</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>SPP - APORTACIÓN OBLIGATORIA</ss:Data></ss:Cell><ss:Cell ss:Index="8"><ss:Data>170.55</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Neto a Pagar</ss:Data></ss:Cell><ss:Cell ss:Index="9"><ss:Data>1306.20</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>Aportes de Empleador</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell ss:Index="2"><ss:Data>0804</ss:Data></ss:Cell><ss:Cell ss:Index="3"><ss:Data>ESSALUD</ss:Data></ss:Cell><ss:Cell ss:Index="9"><ss:Data>135.00</ss:Data></ss:Cell></ss:Row>
+</ss:Table></ss:Worksheet></ss:Workbook>
