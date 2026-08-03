@@ -1,0 +1,12 @@
+const number = (value) => Number(String(value ?? "0").replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0;
+const rowsFrom = (xml) => [...new DOMParser().parseFromString(xml, "application/xml").querySelectorAll("Row")].map((row) => [...row.children].map((cell) => cell.textContent.trim()));
+const findValue = (rows, label, index = 1) => { const row = rows.find((item) => (item[0] ?? "").toLowerCase().includes(label.toLowerCase())); return row?.[index] ?? ""; };
+
+export function parseSunatXml(xml) {
+  const rows = rowsFrom(xml); if (!rows.length) throw new Error("El XML no contiene filas legibles.");
+  const incomesStart = rows.findIndex((row) => (row[0] ?? "").toLowerCase().includes("ingresos")); const discountsStart = rows.findIndex((row) => (row[0] ?? "").toLowerCase().includes("descuentos")); const contributionsStart = rows.findIndex((row) => (row[0] ?? "").toLowerCase().includes("aportes de empleador"));
+  const section = (start, end) => rows.slice(start + 1, end > start ? end : rows.length).filter((row) => row[0] && row[1] && /^\d{4}/.test(row[0])).map((row) => ({ code: row[0], concept: row[1], amount: number(row.at(-1)) }));
+  const incomes = section(incomesStart, discountsStart); const discounts = section(discountsStart, contributionsStart); const contributions = section(contributionsStart, rows.length);
+  const totalIncome = number(findValue(rows, "total ingresos")); const totalDiscounts = number(findValue(rows, "total descuentos")); const netRow = rows.find((row) => (row[0] ?? "").toLowerCase().trim() === "neto a pagar");
+  return { employer: findValue(rows, "empleador") || findValue(rows, "empresa"), ruc: findValue(rows, "ruc"), period: findValue(rows, "periodo") || "06/2026", employee: findValue(rows, "trabajador") || findValue(rows, "apellidos y nombres"), dni: findValue(rows, "dni"), status: findValue(rows, "estado"), startDate: findValue(rows, "fecha de ingreso"), workerType: findValue(rows, "tipo de trabajador"), pension: findValue(rows, "régimen pensionario"), cuspp: findValue(rows, "cuspp"), daysWorked: findValue(rows, "días laborados"), daysSubsidized: findValue(rows, "días subsidiados"), condition: findValue(rows, "condición"), ordinaryHours: findValue(rows, "horas ordinarias"), incomes, discounts, employerContributions: contributions, totalIncome: totalIncome || incomes.reduce((sum, item) => sum + item.amount, 0), totalDiscounts: totalDiscounts || discounts.reduce((sum, item) => sum + item.amount, 0), net: netRow ? number(netRow[1]) : totalIncome - totalDiscounts };
+}

@@ -1,35 +1,33 @@
-# Estudio JK · Panel administrativo
+# Estudio JK · Plataforma corporativa
 
-Panel web para gestionar empresas, generar boletas PLAME R08 desde XML de SUNAT, emitir recibos por honorarios con múltiples conceptos y consultar/eliminar el historial de archivos generados.
+La interfaz principal está construida con HTML, CSS y JavaScript nativo, organizada por módulos reutilizables. Incluye el sitio corporativo, autenticación local, portal de clientes, panel administrativo, generación de boletas PLAME, honorarios e historial.
 
-## Ejecutar localmente
-
-Requiere Node.js 22 o superior.
+## Ejecutar
 
 ```bash
 npm install
 npm run dev
 ```
 
-La aplicación funciona en modo local con datos de demostración y `localStorage`. Los botones de descarga abren una vista imprimible para elegir **Guardar como PDF**.
+Abra la URL local que muestra la terminal. También puede revisar `index.html` como punto de entrada estático; para que funcionen módulos, localStorage y generación de documentos debe servirse mediante el servidor de desarrollo.
 
-## Módulos incluidos
+## Estructura principal
 
-- Dashboard con métricas y actividad reciente.
-- Empresas: alta, edición, estado, identidad, color y logo obligatorio para nuevas empresas.
-- Plantillas: carga y lectura de XML real `SUNAT-PDT` / PLAME R08, selección de empresa, vista previa y PDF.
-- Honorarios: múltiples conceptos, cálculo automático, saludo, observaciones, vista previa y PDF.
-- Historial: acceso a documentos generados, descarga nuevamente y eliminación.
+- `index.html`: entrada HTML de la aplicación.
+- `styles.css`: estilos corporativos, responsive, autenticación y panel.
+- `app.js`: orquestador de vistas y eventos.
+- `js/`: módulos JavaScript para autenticación, almacenamiento, XML y plantillas.
+- `public/index.html`, `public/app.js`, `public/styles.css`: copia servible para el runtime de publicación.
+- `public/hero-office.png`: imagen hero corporativa.
+- `supabase/schema.sql`: tablas, relaciones, RLS, triggers e índices para Supabase.
 
-## Conectar Supabase
+El proyecto conserva un adaptador mínimo de publicación compatible con Sites; no participa en la interfaz ni en la lógica de negocio. La aplicación visible y sus generadores son HTML/CSS/JavaScript.
 
-1. Crea un proyecto en Supabase.
-2. Ejecuta [`supabase/schema.sql`](supabase/schema.sql) en el SQL Editor.
-3. Crea el bucket privado `documentos` y aplica políticas de Storage según el esquema.
-4. Completa las variables de [`.env.example`](.env.example) o adapta `lib/config.ts` con la URL y la anon key del proyecto.
-5. Sustituye el modo local de `lib/storage.ts` por las funciones de `lib/supabase.ts` en el punto de entrada que prefieras.
+## Acceso local
 
-El esquema incluye usuarios, empresas, archivos, documentos, plantillas generadas, honorarios, actividad, logs, configuración, índices, triggers de actualización y RLS.
+Administrador: `admin@estudiojk.com.pe` · contraseña `12345`.
+
+Los registros de clientes funcionan localmente con `localStorage`. Al configurar Supabase se puede sustituir el adaptador de autenticación y persistencia sin cambiar las vistas.
 
 ## Verificación
 
@@ -37,11 +35,3 @@ El esquema incluye usuarios, empresas, archivos, documentos, plantillas generada
 npm run build
 npm test
 ```
-
-## Estructura principal
-
-- `app/`: shell de la aplicación.
-- `components/`: dashboard, empresas, generadores, historial y previsualizaciones.
-- `lib/xml-parser.ts`: extracción de datos del XML PLAME.
-- `lib/document-renderer.ts`: plantillas imprimibles de boleta y honorarios.
-- `supabase/schema.sql`: base de datos y políticas RLS.
