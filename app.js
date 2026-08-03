@@ -209,3 +209,53 @@ generatePayroll = generatePayrollV3;
 generateFee = generateFeeV3;
 bind = bindV3;
 loadRemoteState();
+
+const saveInBackground = (document, blob) => {
+  if (!supabase.configured || !state.session?.accessToken) return;
+  persistGeneratedDocument(document, blob).then((saved) => {
+    const index = state.documents.findIndex((item) => item.id === document.id);
+    if (index >= 0) { state.documents[index] = saved; storage.saveDocuments(state.documents); }
+  }).catch((error) => console.warn("El PDF se descargó, pero no se sincronizó:", error.message));
+};
+
+async function generatePayrollV4(previewOnly) {
+  const company = state.companies.find((item) => item.id === state.selectedCompany);
+  if (!company || !state.payroll) return alert("Primero cargue un XML válido y seleccione una empresa.");
+  const filename = `Boleta-${state.payroll.period}`;
+  if (previewOnly) { if (!await previewPayrollPdf(company, state.payroll, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+  try {
+    const blob = await downloadPayrollPdf(company, state.payroll, filename);
+    const document = { id: `local-${Date.now()}`, type: "boleta", title: `Boleta de pago · ${state.payroll.period}`, companyId: company.id, companyName: company.name, period: state.payroll.period, amount: state.payroll.net, createdAt: new Date().toISOString(), payload: { payroll: state.payroll } };
+    state.documents.unshift(document); storage.saveDocuments(state.documents); showDownloadNotice("Boleta PDF descargada en este dispositivo."); saveInBackground(document, blob);
+  } catch { alert("No se pudo generar la boleta PDF. Inténtelo nuevamente."); }
+}
+
+async function generateFeeV4(previewOnly) {
+  const company = state.companies.find((item) => item.id === state.selectedCompany);
+  if (!company) return alert("Seleccione una empresa para generar el recibo.");
+  const data = feeFormData(); if (!data.greeting.trim()) data.greeting = defaultFeeGreeting(company);
+  if (!data.items.length) return alert("Agregue al menos un concepto con un monto mayor a cero.");
+  const filename = feeFilename(company, data.date);
+  if (previewOnly) { if (!await previewFeePdf(company, data, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+  try {
+    const blob = await downloadFeePdf(company, data, filename);
+    const document = { id: `local-${Date.now()}`, type: "honorarios", title: `Honorarios · ${data.items[0].description}`, companyId: company.id, companyName: company.name, period: data.date, amount: feeTotal(data.items), createdAt: new Date().toISOString(), payload: { fee: data } };
+    state.documents.unshift(document); storage.saveDocuments(state.documents); showDownloadNotice("Recibo de honorarios descargado en este dispositivo."); saveInBackground(document, blob);
+  } catch { alert("No se pudo generar el recibo PDF. Inténtelo nuevamente."); }
+}
+
+async function deleteHistoryDocumentV2(documentId) {
+  const document = state.documents.find((item) => item.id === documentId);
+  if (!document || !confirm("¿Eliminar este archivo del historial?")) return;
+  state.documents = state.documents.filter((item) => item.id !== documentId); storage.saveDocuments(state.documents); render();
+  if (supabase.configured && !document.id.startsWith("local-")) supabase.deleteDocument(document, state.session?.accessToken).catch((error) => console.warn("No se pudo eliminar de Supabase:", error.message));
+}
+
+function bindV4() {
+  root.querySelectorAll("[data-delete-doc]").forEach((item) => item.addEventListener("click", (event) => { event.stopImmediatePropagation(); deleteHistoryDocumentV2(item.dataset.deleteDoc); }));
+  bindV2();
+}
+
+generatePayroll = generatePayrollV4;
+generateFee = generateFeeV4;
+bind = bindV4;
