@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- The vanilla fallback handlers remain available for direct-file compatibility. */
 import { auth } from "./js/auth.js";
 import { supabase } from "./js/supabase-client.js";
 import { sampleCompanies, sampleDocuments } from "./js/data.js";
@@ -10,7 +11,8 @@ const root = document.getElementById("vanilla-app");
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const initials = (value) => escapeHtml(String(value || "JK").slice(0, 2));
 const logoSource = (value) => { const source = String(value || "").trim(); return source && !["sin-logo", "__sin_logo__"].includes(source) ? source : ""; };
-const state = { mode: "public", authMode: "login", view: "dashboard", session: auth.getSession(), companies: storage.companies(sampleCompanies).map((company) => ({ ...company, logoData: logoSource(company.logoData) })), documents: storage.documents(sampleDocuments), payroll: null, payrollFile: "", selectedCompany: "", feeItems: [{ id: "fee-1", description: "", amount: 0 }], feeDate: new Date().toISOString().slice(0, 10), greeting: "", observations: "", editingCompany: null };
+const cachedLogoSource = (value) => /^data:image\//i.test(String(value || "").trim()) ? String(value).trim() : "";
+const state = { mode: "public", authMode: "login", view: "dashboard", session: auth.getSession(), companies: storage.companies(sampleCompanies).map((company) => ({ ...company, logoData: cachedLogoSource(company.logoData) })), documents: storage.documents(sampleDocuments), payroll: null, payrollFile: "", selectedCompany: "", feeItems: [{ id: "fee-1", description: "", amount: 0 }], feeDate: new Date().toISOString().slice(0, 10), greeting: "", observations: "", editingCompany: null };
 if (state.session) state.mode = state.session.role === "admin" ? "admin" : "client";
 const study = { phone: "950 361 967", email: "contacto@estudiojk.com.pe", address: "Chile, Amarilis 00011" };
 
@@ -219,7 +221,7 @@ root.addEventListener("error", (event) => {
   const company = state.companies.find((item) => logoSource(item.logoData) === image.getAttribute("src"));
   const holder = image.closest(".company-avatar, .mini-logo, .logo-preview");
   if (!holder) return;
-  image.remove(); holder.textContent = initials(company?.name || "JK");
+  image.remove(); holder.textContent = holder.classList.contains("logo-preview") ? "Sin logo" : initials(company?.name || "JK");
 }, true);
 
 const saveInBackground = (document, blob) => {
@@ -295,3 +297,119 @@ function bindV5() {
 }
 
 bind = bindV5;
+
+const noLogoPath = (value) => ["", "sin-logo", "__sin_logo__"].includes(String(value || "").trim());
+const storedLogo = (company) => !noLogoPath(company?.logoPath);
+const updateCompanyInState = (company) => {
+  state.companies = state.companies.map((item) => item.id === company.id ? company : item);
+  storage.saveCompanies(state.companies);
+  return company;
+};
+
+async function refreshCompanyLogoForDocument(company) {
+  if (!storedLogo(company)) return company;
+  if (!supabase.configured || !state.session?.accessToken) {
+    if (logoSource(company.logoData)) return company;
+    throw new Error(`No se pudo validar el logo de ${company.name}. Inicie sesión nuevamente y vuelva a intentarlo.`);
+  }
+  const freshLogo = logoSource(await supabase.logoUrl(company.logoPath, state.session.accessToken));
+  if (!freshLogo) throw new Error(`No se pudo cargar el logo de ${company.name}. Vuelva a guardarlo desde Empresas e inténtelo nuevamente.`);
+  return updateCompanyInState({ ...company, logoData: freshLogo, logoError: "" });
+}
+
+async function loadRemoteStateV2() {
+  if (!supabase.configured || !state.session?.accessToken) return;
+  const priorCompanies = state.companies;
+  const [companiesResult, documentsResult] = await Promise.allSettled([
+    supabase.companies(state.session.accessToken),
+    supabase.documents(state.session.accessToken),
+  ]);
+  let changed = false;
+  if (companiesResult.status === "fulfilled") {
+    state.companies = companiesResult.value.map((company) => {
+      const previous = priorCompanies.find((item) => item.id === company.id);
+      return { ...company, logoData: logoSource(company.logoData) || cachedLogoSource(previous?.logoData) };
+    });
+    storage.saveCompanies(state.companies);
+    changed = true;
+  } else console.warn("No se pudieron sincronizar las empresas:", companiesResult.reason?.message || companiesResult.reason);
+  if (documentsResult.status === "fulfilled") {
+    state.documents = documentsResult.value;
+    storage.saveDocuments(state.documents);
+    changed = true;
+  } else console.warn("No se pudo sincronizar el historial:", documentsResult.reason?.message || documentsResult.reason);
+  if (changed) render();
+}
+
+async function saveCompanyV4(event, original) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form).entries());
+  delete data.logo;
+  const ruc = String(data.ruc || "").trim();
+  const color = String(data.color || "").toUpperCase();
+  if (!/^\d{11}$/.test(ruc)) return alert("El RUC debe contener exactamente 11 dígitos.");
+  if (!/^#[0-9A-F]{6}$/.test(color)) return alert("Seleccione un color corporativo válido.");
+  if (state.companies.some((item) => item.id !== original.id && item.ruc === ruc)) return alert("Ya existe una empresa registrada con ese RUC.");
+  const file = form.logo.files[0];
+  const localLogo = file ? await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error("No se pudo leer el archivo del logo.")); reader.readAsDataURL(file); }) : cachedLogoSource(original.logoData);
+  const id = supabase.configured && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(original.id) ? crypto.randomUUID() : original.id;
+  const company = { ...original, ...data, id, name: String(data.name).trim(), legalName: String(data.name).trim(), ruc, color, logoData: localLogo, active: data.active === "true" };
+  const submit = form.querySelector("button[type=submit]");
+  if (submit) submit.disabled = true;
+  try {
+    const saved = supabase.configured ? await supabase.saveCompany(company, file, state.session?.accessToken) : company;
+    const persisted = { ...saved, logoData: logoSource(saved.logoData) || localLogo || "" };
+    state.companies = [...state.companies.filter((item) => item.id !== persisted.id), persisted];
+    storage.saveCompanies(state.companies);
+    state.editingCompany = null;
+    document.getElementById("company-modal")?.remove();
+    render();
+  } catch (error) {
+    alert(`No se pudo guardar la empresa: ${error.message}`);
+  } finally {
+    if (submit) submit.disabled = false;
+  }
+}
+
+async function generatePayrollV5(previewOnly) {
+  let company = state.companies.find((item) => item.id === state.selectedCompany);
+  if (!company || !state.payroll) return alert("Primero cargue un XML válido y seleccione una empresa.");
+  const filename = `Boleta-${state.payroll.period}`;
+  try {
+    company = await refreshCompanyLogoForDocument(company);
+    if (previewOnly) { if (!await previewPayrollPdf(company, state.payroll, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+    const blob = await downloadPayrollPdf(company, state.payroll, filename);
+    const document = { id: `local-${Date.now()}`, type: "boleta", title: `Boleta de pago · ${state.payroll.period}`, companyId: company.id, companyName: company.name, period: state.payroll.period, amount: state.payroll.net, createdAt: new Date().toISOString(), payload: { payroll: state.payroll } };
+    state.documents.unshift(document);
+    storage.saveDocuments(state.documents);
+    showDownloadNotice("Boleta PDF descargada en este dispositivo.");
+    saveInBackground(document, blob);
+  } catch (error) { alert(error.message || "No se pudo generar la boleta PDF. Inténtelo nuevamente."); }
+}
+
+async function generateFeeV5(previewOnly) {
+  let company = state.companies.find((item) => item.id === state.selectedCompany);
+  if (!company) return alert("Seleccione una empresa para generar el recibo.");
+  const data = feeFormData();
+  if (!data.greeting.trim()) data.greeting = defaultFeeGreeting(company);
+  if (!data.items.length) return alert("Agregue al menos un concepto con un monto mayor a cero.");
+  const filename = feeFilename(company, data.date);
+  try {
+    company = await refreshCompanyLogoForDocument(company);
+    if (previewOnly) { if (!await previewFeePdf(company, data, filename)) alert("El navegador bloqueó la vista previa. Permita ventanas emergentes e inténtelo nuevamente."); return; }
+    const blob = await downloadFeePdf(company, data, filename);
+    const document = { id: `local-${Date.now()}`, type: "honorarios", title: `Honorarios · ${data.items[0].description}`, companyId: company.id, companyName: company.name, period: data.date, amount: feeTotal(data.items), createdAt: new Date().toISOString(), payload: { fee: data } };
+    state.documents.unshift(document);
+    storage.saveDocuments(state.documents);
+    showDownloadNotice("Recibo de honorarios descargado en este dispositivo.");
+    saveInBackground(document, blob);
+  } catch (error) { alert(error.message || "No se pudo generar el recibo PDF. Inténtelo nuevamente."); }
+}
+
+loadRemoteState = loadRemoteStateV2;
+saveCompany = saveCompanyV4;
+generatePayroll = generatePayrollV5;
+generateFee = generateFeeV5;
+render();
+loadRemoteState();

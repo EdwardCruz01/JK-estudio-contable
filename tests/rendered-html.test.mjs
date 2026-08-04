@@ -37,8 +37,42 @@ test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
 });
 
 test("keeps an uploaded logo available while Supabase refreshes signed URLs", async () => {
-  const [app, client] = await Promise.all([readFile(new URL("../public/app.js", import.meta.url), "utf8"), readFile(new URL("../public/js/supabase-client.js", import.meta.url), "utf8")]);
-  assert.match(client, /\["sin-logo", "__sin_logo__"\]/); assert.match(client, /\^\(data:image\\\/\|https\?:\\\/\\\/\)/); assert.match(app, /const logoSource/); assert.match(app, /logoData: logoSource\(saved\.logoData\) \|\| localLogo \|\| ""/); assert.match(app, /logoSource\(priorCompanies\.find/); assert.match(app, /root\.addEventListener\("error"/);
+  const [app, client, templates, storage] = await Promise.all([readFile(new URL("../public/app.js", import.meta.url), "utf8"), readFile(new URL("../public/js/supabase-client.js", import.meta.url), "utf8"), readFile(new URL("../public/js/templates.js", import.meta.url), "utf8"), readFile(new URL("../public/js/storage.js", import.meta.url), "utf8")]);
+  assert.match(client, /const noLogoPaths/); assert.match(client, /value\?\.signedURL \|\| value\?\.signedUrl/); assert.match(client, /async logoUrl\(path, token\)/); assert.match(client, /logo-\$\{Date\.now\(\)\}/); assert.match(client, /assertLogoFile/); assert.match(app, /Promise\.allSettled/); assert.match(app, /refreshCompanyLogoForDocument/); assert.match(app, /cachedLogoSource/); assert.match(app, /root\.addEventListener\("error"/); assert.match(templates, /requireStoredLogo/); assert.match(templates, /setTimeout\(\(\) => finish\(null\), 8000\)/); assert.match(storage, /cachedCompanies/);
+});
+
+test("builds valid Supabase logo URLs and accepts both documented response casings", async () => {
+  const originalConfig = globalThis.JK_SUPABASE_CONFIG;
+  const originalFetch = globalThis.fetch;
+  globalThis.JK_SUPABASE_CONFIG = { url: "https://demo.supabase.co", anonKey: "public-test-key" };
+  globalThis.fetch = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.pathname === "/rest/v1/empresas") return new Response(JSON.stringify([{ id: "a6b506b5-2367-4a07-a803-1489d8b7e015", nombre: "Empresa de prueba", razon_social: "Empresa de prueba", ruc: "20123456789", direccion: "Jr. Prueba 123", logo_url: "a6b506b5-2367-4a07-a803-1489d8b7e015/logo.png", color_corporativo: "#B49141", estado: true }]), { headers: { "content-type": "application/json" } });
+    if (parsed.pathname.startsWith("/storage/v1/object/sign/logos/")) return new Response(JSON.stringify({ signedUrl: "/object/sign/logos/a6b506b5-2367-4a07-a803-1489d8b7e015/logo.png?token=ok" }), { headers: { "content-type": "application/json" } });
+    throw new Error(`Ruta no esperada: ${parsed.pathname}`);
+  };
+  try {
+    const moduleUrl = new URL(`../js/supabase-client.js?logo-test=${Date.now()}`, import.meta.url);
+    const { supabase } = await import(moduleUrl.href);
+    const [company] = await supabase.companies("session-token");
+    assert.equal(company.logoData, "https://demo.supabase.co/storage/v1/object/sign/logos/a6b506b5-2367-4a07-a803-1489d8b7e015/logo.png?token=ok");
+    assert.equal(await supabase.logoUrl("sin-logo", "session-token"), "");
+    await assert.rejects(() => supabase.saveCompany({ ...company, logoPath: "a6b506b5-2367-4a07-a803-1489d8b7e015/logo.png" }, { type: "image/gif", size: 42 }, "session-token"), /PNG o JPG/);
+    const requests = [];
+    globalThis.fetch = async (url, options = {}) => {
+      const parsed = new URL(url); requests.push({ path: parsed.pathname, method: options.method || "GET", body: options.body });
+      if (parsed.pathname.startsWith("/storage/v1/object/sign/logos/")) return new Response(JSON.stringify({ signedURL: "/object/sign/logos/fresh-logo.png?token=ok" }), { headers: { "content-type": "application/json" } });
+      if (parsed.pathname === "/rest/v1/empresas") { const body = JSON.parse(options.body); return new Response(JSON.stringify([{ ...body }]), { headers: { "content-type": "application/json" } }); }
+      return new Response("", { status: 200 });
+    };
+    const saved = await supabase.saveCompany(company, { type: "image/png", size: 42 }, "session-token");
+    assert.match(saved.logoPath, /\/logo-\d+\.png$/);
+    assert.ok(requests.some((request) => request.method === "POST" && request.path.includes("/storage/v1/object/logos/") && /logo-\d+\.png$/.test(request.path)));
+    assert.ok(requests.some((request) => request.method === "DELETE" && request.path.endsWith("/a6b506b5-2367-4a07-a803-1489d8b7e015/logo.png")));
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.JK_SUPABASE_CONFIG = originalConfig;
+  }
 });
 
 test("normalizes honorarium items and includes the Supabase persistence schema", async () => {
