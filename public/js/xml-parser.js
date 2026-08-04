@@ -45,5 +45,5 @@ export function parseSunatXml(xml) {
   const net = number(at(rows[netStart], 9));
 
   if (!at(identity, 3) || !at(identity, 4)) throw new Error("El XML no corresponde a una boleta individual PLAME R08 o está incompleto.");
-  return { employer: afterLabel(rows, "Empleador"), ruc: afterLabel(rows, "RUC"), period: afterLabel(rows, "Periodo"), employee: at(identity, 4), dni: at(identity, 3), status: at(identity, 8), startDate: at(employment, 2), workerType: at(employment, 4), pension: at(employment, 6), cuspp: at(employment, 8), daysWorked: at(days, 2), daysNotWorked: at(days, 3), daysSubsidized: at(days, 4), condition: at(days, 5), ordinaryHours: at(days, 6), incomes, discounts, employerContributions, totalIncome, totalDiscounts, net: net || totalIncome - totalDiscounts };
+  return { employer: afterLabel(rows, "Empleador"), ruc: afterLabel(rows, "RUC"), period: afterLabel(rows, "Periodo"), employee: at(identity, 4), dni: at(identity, 3), status: at(identity, 8), startDate: at(employment, 2), workerType: at(employment, 4), pension: at(employment, 6), cuspp: at(employment, 8), daysWorked: at(days, 2), daysNotWorked: at(days, 3), daysSubsidized: at(days, 4), condition: at(days, 5), hoursWorked: at(days, 6), ordinaryHours: at(days, 6), incomes, discounts, employerContributions, totalIncome, totalDiscounts, net: net || totalIncome - totalDiscounts };
 }

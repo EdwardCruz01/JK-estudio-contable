@@ -33,7 +33,7 @@ test("ships the multi-section corporate site and supplied image assets", async (
 test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
   const [xml, { parseSunatXml }] = await Promise.all([readFile(new URL("./fixtures/plame-r08.xml", import.meta.url), "utf8"), import("../public/js/xml-parser.js")]);
   const payroll = parseSunatXml(xml);
-  assert.equal(payroll.employee, "RONALD RUBEN CHAVEZ CALDERON"); assert.equal(payroll.dni, "40654524"); assert.equal(payroll.period, "06/2026"); assert.equal(payroll.incomes.length, 2); assert.equal(payroll.discounts.length, 2); assert.equal(payroll.incomes[0].amount, 1387); assert.equal(payroll.totalIncome, 1500); assert.equal(payroll.totalDiscounts, 193.8); assert.equal(payroll.employerContributions[0].amount, 135); assert.equal(payroll.net, 1306.2);
+  assert.equal(payroll.employee, "RONALD RUBEN CHAVEZ CALDERON"); assert.equal(payroll.dni, "40654524"); assert.equal(payroll.period, "06/2026"); assert.equal(payroll.hoursWorked, "200"); assert.equal(payroll.incomes.length, 2); assert.equal(payroll.discounts.length, 2); assert.equal(payroll.incomes[0].amount, 1387); assert.equal(payroll.totalIncome, 1500); assert.equal(payroll.totalDiscounts, 193.8); assert.equal(payroll.employerContributions[0].amount, 135); assert.equal(payroll.net, 1306.2);
 });
 
 test("normalizes honorarium items and includes the Supabase persistence schema", async () => {
