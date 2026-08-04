@@ -154,8 +154,9 @@ saveCompany = saveCompanyV2;
 async function loadRemoteState() {
   if (!supabase.configured || !state.session?.accessToken) return;
   try {
+    const priorCompanies = state.companies;
     const [companies, documents] = await Promise.all([supabase.companies(state.session.accessToken), supabase.documents(state.session.accessToken)]);
-    state.companies = companies; state.documents = documents; storage.saveCompanies(companies); storage.saveDocuments(documents); render();
+    state.companies = companies.map((company) => ({ ...company, logoData: company.logoData || priorCompanies.find((item) => item.id === company.id)?.logoData || "" })); state.documents = documents; storage.saveCompanies(state.companies); storage.saveDocuments(documents); render();
   } catch (error) { console.warn("No se pudo sincronizar Supabase:", error.message); }
 }
 
@@ -172,7 +173,8 @@ async function saveCompanyV3(event, original) {
   const file = form.logo.files[0]; const localLogo = file ? await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); }) : original.logoData; const id = supabase.configured && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(original.id) ? crypto.randomUUID() : original.id; const company = { ...original, ...data, id, name: String(data.name).trim(), legalName: String(data.name).trim(), ruc, color, logoData: localLogo, active: data.active === "true" };
   try {
     const saved = supabase.configured ? await supabase.saveCompany(company, file, state.session?.accessToken) : company;
-    state.companies = [...state.companies.filter((item) => item.id !== saved.id), saved]; storage.saveCompanies(state.companies); state.editingCompany = null; document.getElementById("company-modal")?.remove(); render();
+    const persisted = { ...saved, logoData: saved.logoData || localLogo || "" };
+    state.companies = [...state.companies.filter((item) => item.id !== persisted.id), persisted]; storage.saveCompanies(state.companies); state.editingCompany = null; document.getElementById("company-modal")?.remove(); render();
   } catch (error) { alert(`No se pudo guardar la empresa: ${error.message}`); }
 }
 

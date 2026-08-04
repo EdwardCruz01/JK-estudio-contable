@@ -18,9 +18,11 @@ const documentFromRow = (row) => ({ id: row.id, type: row.tipo, title: row.titul
 const suffixFromFile = (file) => file?.type === "image/png" ? "png" : "jpg";
 
 async function signedUrl(path, token) {
-  if (!path) return "";
-  const value = await request(`/storage/v1/object/sign/logos/${encodeURIComponent(path).replace(/%2F/g, "/")}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ expiresIn: 3600 }) }, token);
-  return `${baseUrl}/storage/v1${value.signedURL}`;
+  const source = String(path || "").trim();
+  if (!source || ["sin-logo", "__sin_logo__"].includes(source)) return "";
+  if (/^(data:image\/|https?:\/\/)/i.test(source)) return source;
+  const value = await request(`/storage/v1/object/sign/logos/${encodeURIComponent(source).replace(/%2F/g, "/")}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ expiresIn: 3600 }) }, token);
+  return /^https?:\/\//i.test(value.signedURL || "") ? value.signedURL : `${baseUrl}/storage/v1${value.signedURL || ""}`;
 }
 
 export const supabase = {
