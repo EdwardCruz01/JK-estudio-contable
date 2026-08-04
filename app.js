@@ -9,7 +9,8 @@ import { defaultFeeGreeting, feeFilename, feeTotal, validFeeItems } from "./js/f
 const root = document.getElementById("vanilla-app");
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 const initials = (value) => escapeHtml(String(value || "JK").slice(0, 2));
-const state = { mode: "public", authMode: "login", view: "dashboard", session: auth.getSession(), companies: storage.companies(sampleCompanies), documents: storage.documents(sampleDocuments), payroll: null, payrollFile: "", selectedCompany: "", feeItems: [{ id: "fee-1", description: "", amount: 0 }], feeDate: new Date().toISOString().slice(0, 10), greeting: "", observations: "", editingCompany: null };
+const logoSource = (value) => { const source = String(value || "").trim(); return source && !["sin-logo", "__sin_logo__"].includes(source) ? source : ""; };
+const state = { mode: "public", authMode: "login", view: "dashboard", session: auth.getSession(), companies: storage.companies(sampleCompanies).map((company) => ({ ...company, logoData: logoSource(company.logoData) })), documents: storage.documents(sampleDocuments), payroll: null, payrollFile: "", selectedCompany: "", feeItems: [{ id: "fee-1", description: "", amount: 0 }], feeDate: new Date().toISOString().slice(0, 10), greeting: "", observations: "", editingCompany: null };
 if (state.session) state.mode = state.session.role === "admin" ? "admin" : "client";
 const study = { phone: "950 361 967", email: "contacto@estudiojk.com.pe", address: "Chile, Amarilis 00011" };
 
@@ -81,7 +82,7 @@ document.addEventListener("click", (event) => {
 
 /* Administrative document flows. Kept here so the vanilla app can later swap
    the local storage adapter for Supabase without changing the screens. */
-const companyBadge = (company, className = "company-avatar") => `<span class="${className}" style="background:${escapeHtml(company?.color || "#b49141")}">${company?.logoData ? `<img src="${escapeHtml(company.logoData)}" alt="Logo de ${escapeHtml(company.name)}">` : initials(company?.name || "JK")}</span>`;
+const companyBadge = (company, className = "company-avatar") => `<span class="${className}" style="background:${escapeHtml(company?.color || "#b49141")}">${logoSource(company?.logoData) ? `<img src="${escapeHtml(logoSource(company.logoData))}" alt="Logo de ${escapeHtml(company.name)}">` : initials(company?.name || "JK")}</span>`;
 const feeFormData = () => {
   state.feeDate = document.getElementById("fee-date")?.value || state.feeDate;
   state.greeting = document.getElementById("fee-greeting")?.value || state.greeting;
@@ -156,7 +157,7 @@ async function loadRemoteState() {
   try {
     const priorCompanies = state.companies;
     const [companies, documents] = await Promise.all([supabase.companies(state.session.accessToken), supabase.documents(state.session.accessToken)]);
-    state.companies = companies.map((company) => ({ ...company, logoData: company.logoData || priorCompanies.find((item) => item.id === company.id)?.logoData || "" })); state.documents = documents; storage.saveCompanies(state.companies); storage.saveDocuments(documents); render();
+    state.companies = companies.map((company) => ({ ...company, logoData: logoSource(company.logoData) || logoSource(priorCompanies.find((item) => item.id === company.id)?.logoData) })); state.documents = documents; storage.saveCompanies(state.companies); storage.saveDocuments(documents); render();
   } catch (error) { console.warn("No se pudo sincronizar Supabase:", error.message); }
 }
 
@@ -170,10 +171,10 @@ async function submitAuthV2(event) {
 async function saveCompanyV3(event, original) {
   event.preventDefault(); const form = event.currentTarget; const data = Object.fromEntries(new FormData(form).entries()); const ruc = String(data.ruc || "").trim(); const color = String(data.color || "").toUpperCase();
   if (!/^\d{11}$/.test(ruc)) return alert("El RUC debe contener exactamente 11 dígitos."); if (!/^#[0-9A-F]{6}$/.test(color)) return alert("Seleccione un color corporativo válido."); if (state.companies.some((item) => item.id !== original.id && item.ruc === ruc)) return alert("Ya existe una empresa registrada con ese RUC.");
-  const file = form.logo.files[0]; const localLogo = file ? await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); }) : original.logoData; const id = supabase.configured && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(original.id) ? crypto.randomUUID() : original.id; const company = { ...original, ...data, id, name: String(data.name).trim(), legalName: String(data.name).trim(), ruc, color, logoData: localLogo, active: data.active === "true" };
+  const file = form.logo.files[0]; const localLogo = file ? await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); }) : logoSource(original.logoData); const id = supabase.configured && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(original.id) ? crypto.randomUUID() : original.id; const company = { ...original, ...data, id, name: String(data.name).trim(), legalName: String(data.name).trim(), ruc, color, logoData: localLogo, active: data.active === "true" };
   try {
     const saved = supabase.configured ? await supabase.saveCompany(company, file, state.session?.accessToken) : company;
-    const persisted = { ...saved, logoData: saved.logoData || localLogo || "" };
+    const persisted = { ...saved, logoData: logoSource(saved.logoData) || localLogo || "" };
     state.companies = [...state.companies.filter((item) => item.id !== persisted.id), persisted]; storage.saveCompanies(state.companies); state.editingCompany = null; document.getElementById("company-modal")?.remove(); render();
   } catch (error) { alert(`No se pudo guardar la empresa: ${error.message}`); }
 }
@@ -211,6 +212,15 @@ generatePayroll = generatePayrollV3;
 generateFee = generateFeeV3;
 bind = bindV3;
 loadRemoteState();
+
+root.addEventListener("error", (event) => {
+  const image = event.target;
+  if (!(image instanceof HTMLImageElement)) return;
+  const company = state.companies.find((item) => logoSource(item.logoData) === image.getAttribute("src"));
+  const holder = image.closest(".company-avatar, .mini-logo, .logo-preview");
+  if (!holder) return;
+  image.remove(); holder.textContent = initials(company?.name || "JK");
+}, true);
 
 const saveInBackground = (document, blob) => {
   if (!supabase.configured || !state.session?.accessToken) return;

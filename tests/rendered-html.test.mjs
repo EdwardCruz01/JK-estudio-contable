@@ -38,7 +38,7 @@ test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
 
 test("keeps an uploaded logo available while Supabase refreshes signed URLs", async () => {
   const [app, client] = await Promise.all([readFile(new URL("../public/app.js", import.meta.url), "utf8"), readFile(new URL("../public/js/supabase-client.js", import.meta.url), "utf8")]);
-  assert.match(client, /\["sin-logo", "__sin_logo__"\]/); assert.match(client, /\^\(data:image\\\/\|https\?:\\\/\\\/\)/); assert.match(app, /logoData: saved\.logoData \|\| localLogo \|\| ""/); assert.match(app, /priorCompanies\.find/);
+  assert.match(client, /\["sin-logo", "__sin_logo__"\]/); assert.match(client, /\^\(data:image\\\/\|https\?:\\\/\\\/\)/); assert.match(app, /const logoSource/); assert.match(app, /logoData: logoSource\(saved\.logoData\) \|\| localLogo \|\| ""/); assert.match(app, /logoSource\(priorCompanies\.find/); assert.match(app, /root\.addEventListener\("error"/);
 });
 
 test("normalizes honorarium items and includes the Supabase persistence schema", async () => {
