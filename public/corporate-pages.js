@@ -48,7 +48,7 @@
 
   const footer = () => `<footer class="public-footer corporate-footer"><div class="public-brand">${corporateLogo}</div><div><b>Información clara para decidir mejor.</b><span>Contabilidad, tributación y gestión empresarial.</span></div><div><button data-public-page="contact">Contacto</button><button data-action="login">Panel administrativo</button></div><small>© 2026 JK Asesores Contables. Todos los derechos reservados.</small></footer><a class="whatsapp-float" href="https://wa.me/51950361967" target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp">${whatsappIcon("whatsapp-logo-image")}</a>`;
 
-  const pageHead = (eyebrow, title, copy) => `<section class="page-heading"><span class="public-eyebrow">${eyebrow}</span><h1>${title}</h1><p>${copy}</p></section>`;
+  const pageBanner = (className, eyebrow, title, copy, image, alt) => `<section class="corporate-banner ${className}" aria-label="${eyebrow}"><img src="/assets/${image}" alt="${alt}" /><div class="corporate-banner-copy"><span class="public-eyebrow">${eyebrow}</span><h1>${title}</h1><p>${copy}</p></div></section>`;
   const serviceCards = (limit) => services.slice(0, limit || services.length).map(([icon, title, copy]) => `<article class="service-catalog-card"><span class="service-icon">${icon}</span><h3>${title}</h3><p>${copy}</p><button class="arrow-link" data-service-summary="${title}" aria-haspopup="dialog">Ver resumen <span>→</span></button></article>`).join("");
 
   function home() {
@@ -70,8 +70,7 @@
     </main>`;
   }
 
-  function servicesPage() { return `<main>${pageHead("SERVICIOS", "Todo lo que su empresa necesita, en un solo estudio.", "Un portafolio integral diseñado para acompañarle desde la formalización hasta la consolidación financiera.")}
-    <section class="corporate-banner services-banner" aria-label="Soluciones contables y financieras"><img src="/assets/services-banner.png" alt="Ilustración de soluciones contables y financieras" /><div class="corporate-banner-copy"><span class="public-eyebrow">VISIÓN DE NEGOCIO</span><h2>Ordenamos sus números para que avance con claridad.</h2><p>Información confiable para cumplir, planificar y tomar mejores decisiones.</p></div></section>
+  function servicesPage() { return `<main>${pageBanner("services-banner", "SERVICIOS", "Todo lo que su empresa necesita, en un solo estudio.", "Un portafolio integral diseñado para acompañarle desde la formalización hasta la consolidación financiera.", "services-banner.png", "Soluciones contables y financieras para empresas")}
     <section class="corporate-section services-catalog-section"><div class="service-catalog">${serviceCards()}</div></section>
     <section class="corporate-section service-cta"><div><span class="public-eyebrow">¿NO SABE POR DÓNDE EMPEZAR?</span><h2>Cuéntenos su situación y le orientamos.</h2><p>Una conversación inicial nos permite recomendarle el servicio que más valor puede aportar a su empresa.</p></div><button class="gold-button" data-public-page="contact">Solicitar asesoría</button></section>
   </main>`; }
@@ -81,13 +80,19 @@
     <section class="corporate-section"><div class="section-heading centered"><span class="public-eyebrow">ESPECIALISTAS</span><h2>Conocimiento que se complementa.</h2></div><div class="people-grid"><article><img src="/assets/team-maria.png" alt="María Álvarez" /><h3>María Álvarez</h3><span>GERENTE CONTABLE</span><p>NIIF · Estados Financieros · Control de gestión</p></article><article><img src="/assets/team-jorge.png" alt="Jorge Rivera" /><h3>Jorge Rivera</h3><span>ASESOR TRIBUTARIO</span><p>PDT · Fiscalizaciones · SUNAT</p></article><article><img src="/assets/team-carla.png" alt="Carla Mendoza" /><h3>Carla Mendoza</h3><span>CONSULTORA LABORAL</span><p>Planillas · Recursos Humanos · Relaciones laborales</p></article></div></section>
   </main>`; }
 
-  function contact(selectedService) { return `<main class="public-page public-page-contact"><section class="page-heading contact-page-heading"><span class="public-eyebrow">CONTACTO</span><h1>Conversemos sobre su empresa</h1><p>Complete el formulario y un asesor de Estudio Contable JK le contactará en menos de 24 horas.</p></section>
-    <section class="corporate-banner contact-banner" aria-label="Canales de contacto de JK Asesores Contables"><img src="/assets/contact-banner.png" alt="Canales de contacto de JK Asesores Contables" /><div class="corporate-banner-copy"><span class="public-eyebrow">ATENCIÓN CERCANA</span><h2>Estamos listos para escucharle.</h2><p>Cuéntenos qué necesita y le ayudaremos a encontrar el siguiente paso.</p></div></section>
+  function contact(selectedService) { return `<main class="public-page public-page-contact">${pageBanner("contact-banner", "CONTACTO", "Conversemos sobre su empresa", "Complete el formulario y un asesor de Estudio Contable JK le contactará en menos de 24 horas.", "contact-banner.png", "Canales de contacto de JK Asesores Contables")}
     <section class="corporate-section contact-layout"><form id="corporate-contact-form" class="corporate-form"><div class="form-grid"><label>Nombre completo<input required name="name" placeholder="Ej. María Pérez" /></label><label>Correo<input required type="email" name="email" placeholder="correo@empresa.com" /></label><label>Teléfono<input name="phone" placeholder="+51 999 000 000" /></label><label>Empresa<input name="company" placeholder="Razón social" /></label></div><label>Servicio de interés<input id="contact-service" name="service" value="${selectedService || ""}" placeholder="Seleccione o describa el servicio" /></label><label>Mensaje<textarea required name="message" rows="6" placeholder="Cuéntenos brevemente su necesidad"></textarea></label><button class="gold-button" type="submit">✈ Enviar mensaje</button><p class="form-feedback" aria-live="polite"></p></form><aside class="contact-details"><a href="https://maps.google.com/?q=JR.+CHILE+MZ.+A+LT.+7,+SAN+LUIS,+AMARILIS,+HUANUCO" target="_blank" rel="noreferrer"><span>⌖</span><div><small>DIRECCIÓN</small><b>JR. CHILE MZ. A LT. 7, San Luis — Amarilis, Huánuco</b></div></a><a href="mailto:jk.asesorescontables17@gmail.com"><span>✉</span><div><small>CORREO</small><b>jk.asesorescontables17@gmail.com</b></div></a><a href="tel:+51950361967"><span>☎</span><div><small>TELÉFONO</small><b>950 361 967</b></div></a><a href="https://wa.me/51950361967" target="_blank" rel="noreferrer"><span class="whatsapp-inline">${whatsappIcon("whatsapp-logo-image")}</span><div><small>WHATSAPP</small><b>+51 950 361 967</b></div></a><div><span>◷</span><div><small>HORARIO</small><b>Lun a Vie · 9:00 a 18:00 · Sáb 9:00 a 13:00</b></div></div></aside></section>
   </main>`; }
 
   function enableMotion(scope = document) {
     const site = scope.querySelector?.(".corporate-site") || document.querySelector(".corporate-site");
+    site?.querySelectorAll("[data-close-flyer]").forEach((item) => {
+      if (item.dataset.flyerBound) return;
+      item.dataset.flyerBound = "true";
+      item.addEventListener("click", () => {
+        try { localStorage.setItem(flyerStorageKey, "true"); } catch {}
+      });
+    });
     if (!site || !window.IntersectionObserver) return;
     const nodes = site.querySelectorAll(".corporate-section > *, .service-catalog-card, .values-grid article, .people-grid article, .contact-details > *, .corporate-form");
     site.classList.add("js-motion");
@@ -141,10 +146,13 @@
     modal.querySelector(".service-summary-close")?.focus();
   }
 
+  const flyerStorageKey = "jk-public-flyer-dismissed-v2";
+
   function view(page, selectedService) {
     const safePage = ["home", "about", "services", "team", "contact"].includes(page) ? page : "home";
     const content = { home: home(), about: about(), services: servicesPage(), team: team(), contact: contact(selectedService) }[safePage];
-    const flyer = safePage === "home" ? `<div class="site-flyer" role="dialog" aria-modal="true" aria-label="Información destacada"><div class="site-flyer-backdrop" data-close-flyer></div><section class="site-flyer-card"><button class="site-flyer-close" type="button" data-close-flyer aria-label="Cerrar flyer">×</button><img src="/assets/logistica-flyer.jpeg" alt="Soluciones empresariales y gestión estratégica"><div class="site-flyer-copy"><span class="public-eyebrow">JK ASESORES CONTABLES</span><h2>Información clara para mover su empresa.</h2><p>Contabilidad, tributación y gestión con el respaldo que su negocio necesita.</p><button class="gold-button" data-close-flyer>Continuar al sitio</button></div></section></div>` : "";
+    const flyerDismissed = typeof localStorage !== "undefined" && localStorage.getItem(flyerStorageKey);
+    const flyer = safePage === "home" && !flyerDismissed ? `<div class="site-flyer" role="dialog" aria-modal="true" aria-label="Información destacada"><div class="site-flyer-backdrop" data-close-flyer></div><section class="site-flyer-card"><button class="site-flyer-close" type="button" data-close-flyer aria-label="Cerrar flyer">×</button><img src="/assets/jk-home-flyer-2026.jpg" alt="Cambios en facturación y comprobante por nota SUNAT 2026"><div class="site-flyer-copy"><span class="public-eyebrow">ACTUALIZACIÓN TRIBUTARIA</span><h2>Cambios de facturación 2026.</h2><p>Conozca las novedades que pueden impactar la gestión contable de su empresa.</p><button class="gold-button" data-close-flyer>Continuar al sitio</button></div></section></div>` : "";
     return `<div class="public-site corporate-site">${nav(safePage)}${content}${footer()}${flyer}</div>`;
   }
 
