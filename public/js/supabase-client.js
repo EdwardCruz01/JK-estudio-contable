@@ -15,6 +15,7 @@ async function request(path, options = {}, token) {
 
 const companyFromRow = (row) => ({ id: row.id, name: row.nombre, legalName: row.razon_social, ruc: row.ruc, address: row.direccion, district: row.distrito || "", province: row.provincia || "", department: row.departamento || "", phone: row.telefono || "", email: row.correo || "", representative: row.representante || "", color: row.color_corporativo || "#b49141", active: row.estado, logoPath: row.logo_url, logoData: "" });
 const documentFromRow = (row) => ({ id: row.id, type: row.tipo, title: row.titulo, companyId: row.empresa_id, companyName: row.empresas?.nombre || "Empresa", period: row.periodo || "", amount: Number(row.importe || 0), createdAt: row.created_at, payload: row.payload || {}, file: row.archivos || null });
+const messageFromRow = (row) => ({ id: row.id, recipientId: row.destinatario_id || "all", recipientEmail: row.destinatario_email || "", title: row.asunto, body: row.cuerpo, type: row.tipo, sender: row.remitente, createdAt: row.created_at, read: Boolean(row.leido) });
 const suffixFromFile = (file) => file?.type === "image/png" ? "png" : "jpg";
 const noLogoPaths = new Set(["sin-logo", "__sin_logo__"]);
 const isStoredLogoPath = (value) => { const source = String(value || "").trim(); return Boolean(source && !noLogoPaths.has(source) && !/^(data:image\/|https?:\/\/)/i.test(source)); };
@@ -45,8 +46,12 @@ export const supabase = {
   },
   async signOut(token) { if (configured && token) await request("/auth/v1/logout", { method: "POST" }, token); },
   async profile(token, user) {
-    const rows = await request(`/rest/v1/usuarios?select=id,nombre,email,rol,empresa_id&id=eq.${encodeURIComponent(user.id)}&limit=1`, {}, token);
+    const rows = await request(`/rest/v1/usuarios?select=id,nombre,email,rol,empresa_id,fecha_nacimiento&id=eq.${encodeURIComponent(user.id)}&limit=1`, {}, token);
     return rows[0] || null;
+  },
+  async users(token) {
+    const rows = await request("/rest/v1/usuarios?select=id,nombre,email,rol,activo&order=nombre.asc", {}, token);
+    return rows.map((row) => ({ id: row.id, name: row.nombre, email: row.email, role: row.rol, active: row.activo }));
   },
   async companies(token) {
     const rows = await request("/rest/v1/empresas?select=*&order=created_at.desc", {}, token);
@@ -61,6 +66,19 @@ export const supabase = {
   async documents(token) {
     const rows = await request("/rest/v1/documentos?select=*,empresas(nombre),archivos(id,bucket,storage_path,nombre)&order=created_at.desc", {}, token);
     return rows.map(documentFromRow);
+  },
+  async messages(token) {
+    const rows = await request("/rest/v1/mensajes?select=*&order=created_at.desc", {}, token);
+    return rows.map(messageFromRow);
+  },
+  async saveMessage(message, token) {
+    const body = { destinatario_id: message.recipientId === "all" ? null : message.recipientId || null, destinatario_email: message.recipientEmail || null, asunto: message.title, cuerpo: message.body, tipo: message.type || "admin", remitente: message.sender || "JK Studio Contable" };
+    const [row] = await request("/rest/v1/mensajes", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(body) }, token);
+    if (!row) throw new Error("Supabase no devolvió el mensaje guardado.");
+    return messageFromRow(row);
+  },
+  async ensureBirthdayMessage(token) {
+    await request("/rest/v1/rpc/ensure_birthday_message", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }, token);
   },
   async saveCompany(company, file, token) {
     let logoPath = company.logoPath || "";

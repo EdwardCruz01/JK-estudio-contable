@@ -360,19 +360,25 @@ function adminViewV2() {
   return `<div class="app-shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">JK</span><div><b>Estudio JK</b><small>PANEL ADMIN</small></div></div><div class="side-group"><span class="side-label">GESTIÓN</span>${management.map(([view, icon, label]) => `<button class="side-link ${state.view === view ? "active" : ""}" data-view="${view}"><span>${icon}</span>${label}</button>`).join("")}</div><div class="side-group automation"><span class="side-label">AUTOMATIZACIÓN</span>${automation.map(([view, icon, label]) => `<button class="side-link ${state.view === view ? "active" : ""}" data-view="${view}"><span>${icon}</span>${label}</button>`).join("")}</div><div class="sidebar-spacer"></div><div class="side-user"><span class="avatar">J</span><div><b>${escapeHtml(state.session.name)}</b><small>${escapeHtml(state.session.email)}</small></div></div><button class="logout" data-action="logout">↪ <span>Cerrar sesión</span></button></aside><div class="main-shell"><header class="topbar"><button class="menu-button" data-action="menu">☰</button><span class="topbar-rule"></span><span class="topbar-title">Panel administrativo</span><div class="topbar-spacer"></div><span class="status-dot"></span><span class="topbar-status">Modo local preparado para Supabase</span></header><main>${content}</main></div></div>`;
 }
 
-function sendAdminMessage(event) {
+async function sendAdminMessage(event) {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(event.currentTarget).entries());
   const title = String(data.title || "").trim();
   const body = String(data.body || "").trim();
   if (!title || !body) return;
   const recipient = data.recipient === "all" ? { id: "all", email: "" } : storage.users([]).find((user) => user.id === data.recipient) || { id: data.recipient, email: "" };
-  const messages = storage.messages([]);
-  messages.unshift({ id: `message-${Date.now()}`, recipientId: recipient.id, recipientEmail: recipient.email, title, body, type: "admin", sender: state.session.email, createdAt: new Date().toISOString(), readBy: [] });
-  storage.saveMessages(messages);
-  state.messages = messages;
-  state.messageFeedback = recipient.id === "all" ? "Mensaje enviado a todos los usuarios registrados." : "Mensaje enviado correctamente.";
-  render();
+  const message = { id: `local-${Date.now()}`, recipientId: recipient.id, recipientEmail: recipient.email, title, body, type: "admin", sender: state.session.email, createdAt: new Date().toISOString(), readBy: [] };
+  try {
+    const saved = supabase.configured ? await supabase.saveMessage(message, state.session?.accessToken) : message;
+    const messages = [saved, ...storage.messages([]).filter((item) => item.id !== saved.id)];
+    storage.saveMessages(messages);
+    state.messages = messages;
+    state.messageFeedback = recipient.id === "all" ? "Mensaje enviado a todos los usuarios registrados." : "Mensaje enviado correctamente.";
+    render();
+  } catch (error) {
+    state.messageFeedback = "";
+    alert(`No se pudo enviar el mensaje: ${error.message}`);
+  }
 }
 
 function bindV6() {
@@ -408,9 +414,12 @@ async function refreshCompanyLogoForDocument(company) {
 async function loadRemoteStateV2() {
   if (!supabase.configured || !state.session?.accessToken) return;
   const priorCompanies = state.companies;
-  const [companiesResult, documentsResult] = await Promise.allSettled([
+  if (state.session.role !== "admin") await supabase.ensureBirthdayMessage(state.session.accessToken).catch((error) => console.warn("No se pudo preparar el mensaje de cumpleaños:", error.message));
+  const [companiesResult, documentsResult, messagesResult, usersResult] = await Promise.allSettled([
     supabase.companies(state.session.accessToken),
     supabase.documents(state.session.accessToken),
+    supabase.messages(state.session.accessToken),
+    state.session.role === "admin" ? supabase.users(state.session.accessToken) : Promise.resolve(null),
   ]);
   let changed = false;
   if (companiesResult.status === "fulfilled") {
@@ -426,6 +435,15 @@ async function loadRemoteStateV2() {
     storage.saveDocuments(state.documents);
     changed = true;
   } else console.warn("No se pudo sincronizar el historial:", documentsResult.reason?.message || documentsResult.reason);
+  if (messagesResult.status === "fulfilled") {
+    state.messages = messagesResult.value;
+    storage.saveMessages(state.messages);
+    changed = true;
+  } else console.warn("No se pudieron sincronizar los mensajes:", messagesResult.reason?.message || messagesResult.reason);
+  if (usersResult.status === "fulfilled" && usersResult.value) {
+    storage.saveUsers(usersResult.value);
+    changed = true;
+  }
   if (changed) render();
 }
 
