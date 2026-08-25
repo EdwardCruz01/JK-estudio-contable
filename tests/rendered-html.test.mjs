@@ -26,8 +26,8 @@ test("ships the multi-section corporate site and supplied image assets", async (
     readFile(new URL("../public/corporate.css", import.meta.url), "utf8"),
   ]);
   for (const word of ["Nosotros", "Servicios", "Equipo", "Contacto", "Contabilidad General", "Outsourcing Contable"]) assert.match(corporateJs, new RegExp(word));
-  assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/); assert.match(corporateCss, /site-flyer/); assert.match(corporateJs, /logistica-flyer\.jpeg/); assert.match(corporateJs, /whatsapp-jk-v2\.png/);
-  await Promise.all(["hero-accountant.png", "founder-javier.png", "founder-jimm.png", "logistica-flyer.jpeg", "whatsapp-jk-v2.png", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
+  assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/); assert.match(corporateCss, /site-flyer/); assert.match(corporateCss, /corporate-banner/); assert.match(corporateCss, /client-marquee img/); assert.match(corporateJs, /logistica-flyer\.jpeg/); assert.match(corporateJs, /whatsapp-jk-v2\.png/); assert.match(corporateJs, /contact-banner\.png/); assert.match(corporateJs, /services-banner\.png/); assert.match(corporateJs, /logo-trimar\.jpg/);
+  await Promise.all(["hero-accountant.png", "founder-javier.png", "founder-jimm.png", "logistica-flyer.jpeg", "whatsapp-jk-v2.png", "team-maria.png", "team-jorge.png", "team-carla.png", "contact-banner.png", "services-banner.png", "logo-trimar.jpg", "logo-market-tuki.jpg", "logo-amazon.jpg", "logo-chavez.jpg", "logo-logistica.jpg", "logo-real-huanuco.jpg", "logo-yed.jpg", "logo-distribuidora-chavez.jpg"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
 });
 
 test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
