@@ -27,7 +27,7 @@ test("ships the multi-section corporate site and supplied image assets", async (
   ]);
   for (const word of ["Nosotros", "Servicios", "Equipo", "Contacto", "Contabilidad General", "Outsourcing Contable"]) assert.match(corporateJs, new RegExp(word));
   assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/);
-  await Promise.all(["hero-accountant.png", "founder-javier.png", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
+  await Promise.all(["hero-accountant.png", "founder-javier.png", "founder-jimm.png", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
 });
 
 test("reads indexed PLAME R08 XML columns without losing amounts", async () => {
