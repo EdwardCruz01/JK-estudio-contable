@@ -66,3 +66,55 @@
 @keyframes modalIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
 @media (max-width:680px){.quote-button{display:none}.service-summary-dialog{padding:32px 24px}.service-summary-actions>*{width:100%}.service-summary-dialog h2{font-size:2.35rem}}
 @media (prefers-reduced-motion:reduce){.js-motion .reveal-on-scroll{opacity:1;transform:none;transition:none}.service-summary-modal{animation:none}}
+
+/* JK Asesores Contables visual identity: navy, silver and white. */
+.corporate-site{background:#f4f7fa;color:#122b45}
+.corporate-site .corporate-nav{background:rgba(235,240,246,.97);border-bottom-color:#c4ced9;box-shadow:0 8px 24px rgba(15,39,65,.1)}
+.corporate-site .public-links button,.corporate-site .login-link{color:#40566c}
+.corporate-site .public-links button:hover,.corporate-site .public-links button.active{color:#102d4b}
+.corporate-site .public-links button:after{background-color:#173e67}
+.corporate-site .corporate-nav .public-links button.active{border-bottom-color:#173e67}
+.corporate-logo{display:block;width:190px;height:62px;object-fit:contain;object-position:left center}
+.corporate-footer .corporate-logo{width:190px;height:68px}
+.corporate-site .public-eyebrow{color:#173e67}
+.corporate-site .hero-kicker{border-color:#b5c2cf;color:#d9e3ed}
+.corporate-site .corporate-hero-overlay{background:linear-gradient(90deg,rgba(3,17,32,.96) 0%,rgba(5,24,43,.82) 42%,rgba(8,29,49,.48) 72%,rgba(3,15,28,.5) 100%)}
+.corporate-site .corporate-hero-content h1 em{color:#c6d2df}
+.corporate-site .gold-button,.service-summary-dialog .gold-button{background:linear-gradient(135deg,#e1e6ec,#8997a7);color:#102d4b;box-shadow:0 10px 22px rgba(35,56,78,.2)}
+.corporate-site .gold-button:hover,.service-summary-dialog .gold-button:hover{background:linear-gradient(135deg,#f1f4f7,#aeb9c5);box-shadow:0 14px 26px rgba(21,54,88,.24)}
+.corporate-site .outline-light{border-color:#d5e0ea;color:#fff}
+.corporate-site .outline-light:hover{background:#fff;color:#102d4b}
+.corporate-site .client-strip{background:#0d2945;color:#d4e0eb;border-bottom-color:#1d466d}
+.corporate-site .client-strip>div{color:#f4f7fa}
+.corporate-site .muted-section,.corporate-site .values-section,.corporate-site .service-cta{background:#e7edf3}
+.corporate-site .service-catalog-card,.corporate-site .values-grid article,.corporate-site .people-grid article,.corporate-site .corporate-form,.corporate-site .contact-details>a,.corporate-site .contact-details>div{background:#fff;border-color:#cbd5df;box-shadow:0 12px 28px rgba(20,47,75,.07)}
+.corporate-site .service-catalog-card:hover{border-color:#6f879f;box-shadow:0 22px 35px rgba(20,47,75,.14)}
+.corporate-site .service-catalog-card .service-icon{background:#dfe6ed;color:#173e67}
+.corporate-site .service-catalog-card h3,.corporate-site .values-grid h3,.corporate-site .people-grid h3{color:#122b45}
+.corporate-site .service-catalog-card p,.corporate-site .values-grid p,.corporate-site .people-grid p,.corporate-site .page-hero-copy p,.corporate-site .about-story-followup p,.corporate-site .section-heading p,.corporate-site .service-cta p{color:#52677b}
+.corporate-site .arrow-link,.corporate-site .outline-dark{color:#173e67}
+.corporate-site .outline-dark{border-color:#173e67;background:transparent}
+.corporate-site .metrics-section{border-color:#cbd5df}
+.corporate-site .metrics-section article{border-color:#cbd5df}
+.corporate-site .metrics-section strong{color:#6e8091}
+.corporate-site .testimonial-banner{background:#0d2945}
+.corporate-site .page-heading h1,.corporate-site .page-hero-copy h1,.corporate-site .about-story h2,.corporate-site .methodology h2,.corporate-site .service-cta h2{color:#102d4b}
+.corporate-site .page-hero-team .page-hero-copy h3,.corporate-site .founder-section h3{color:#466784}
+.corporate-site .founder-image span{background:#aeb9c5;color:#102d4b}
+.corporate-site .methodology ol,.corporate-site .methodology li{border-color:#cbd5df}
+.corporate-site .methodology li>span{color:#173e67}
+.corporate-site .contact-details>*>span{background:linear-gradient(145deg,#dce3ea,#7f8d9c)}
+.corporate-site .contact-details small{color:#557089}
+.corporate-site .corporate-footer{background:#081d32}
+.corporate-site .corporate-footer>div:nth-child(2){color:#d4e0eb}
+.corporate-site .corporate-footer>small{color:#99aabd;border-color:#294866}
+.corporate-site .corporate-footer button{color:#d5e1ec}
+.corporate-site .quote-button{border-color:#6f8396;background:#dce3ea;color:#102d4b}
+.corporate-site .quote-button:hover{background:#173e67;color:#fff}
+.service-summary-dialog{background:#f7fafc;border-color:#cbd5df}
+.service-summary-dialog h2{color:#102d4b}
+.service-summary-dialog p{color:#52677b}
+.service-summary-dialog .public-eyebrow{color:#173e67}
+.service-summary-close{color:#173e67}
+.auth-corporate-logo{width:240px;height:95px;object-position:left center}
+@media (max-width:680px){.corporate-logo{width:154px;height:52px}.corporate-footer .corporate-logo{width:175px;height:62px}.auth-corporate-logo{width:205px;height:82px}}

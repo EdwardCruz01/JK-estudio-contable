@@ -36,16 +36,17 @@
     "Formalización de Negocios": "Acompañamos la formalización de su emprendimiento para que pueda operar y crecer sobre una base sólida.",
   };
   const whatsappIcon = (className = "") => `<img class="${className}" src="/assets/whatsapp-jk.png" alt="" aria-hidden="true">`;
+  const corporateLogo = `<img class="corporate-logo" src="/assets/jk-logo.png" alt="JK Asesores Contables">`;
 
   const nav = (page) => `
     <header class="public-nav corporate-nav">
-      <button class="public-brand" data-public-page="home" aria-label="Ir al inicio"><span class="public-brand-mark">JK</span><span><b>Estudio JK</b><small>CONTABLE · TRIBUTARIO</small></span></button>
+      <button class="public-brand" data-public-page="home" aria-label="Ir al inicio">${corporateLogo}</button>
       <button class="mobile-toggle" data-action="mobile" aria-label="Abrir navegación">☰</button>
       <nav class="public-links">${[["home","Inicio"],["about","Nosotros"],["services","Servicios"],["team","Equipo"],["contact","Contacto"]].map(([id, label]) => `<button class="${page === id ? "active" : ""}" data-public-page="${id}">${label}</button>`).join("")}</nav>
       <div class="public-actions"><button class="quote-button" data-public-page="contact">Cotizar</button><button class="login-link" data-action="login">↪ <span>Iniciar sesión</span></button><button class="gold-button public-register" data-action="register">♙ <span>Registrarse</span></button></div>
     </header>`;
 
-  const footer = () => `<footer class="public-footer corporate-footer"><div class="public-brand"><span class="public-brand-mark">JK</span><span><b>Estudio JK</b><small>CONTABLE · TRIBUTARIO</small></span></div><div><b>Información clara para decidir mejor.</b><span>Contabilidad, tributación y gestión empresarial.</span></div><div><button data-public-page="contact">Contacto</button><button data-action="login">Panel administrativo</button></div><small>© 2026 Estudio Contable JK. Todos los derechos reservados.</small></footer><a class="whatsapp-float" href="https://wa.me/51950361967" target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp">${whatsappIcon("whatsapp-logo-image")}</a>`;
+  const footer = () => `<footer class="public-footer corporate-footer"><div class="public-brand">${corporateLogo}</div><div><b>Información clara para decidir mejor.</b><span>Contabilidad, tributación y gestión empresarial.</span></div><div><button data-public-page="contact">Contacto</button><button data-action="login">Panel administrativo</button></div><small>© 2026 JK Asesores Contables. Todos los derechos reservados.</small></footer><a class="whatsapp-float" href="https://wa.me/51950361967" target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp">${whatsappIcon("whatsapp-logo-image")}</a>`;
 
   const pageHead = (eyebrow, title, copy) => `<section class="page-heading"><span class="public-eyebrow">${eyebrow}</span><h1>${title}</h1><p>${copy}</p></section>`;
   const serviceCards = (limit) => services.slice(0, limit || services.length).map(([icon, title, copy]) => `<article class="service-catalog-card"><span class="service-icon">${icon}</span><h3>${title}</h3><p>${copy}</p><button class="arrow-link" data-service-summary="${title}" aria-haspopup="dialog">Ver resumen <span>→</span></button></article>`).join("");
