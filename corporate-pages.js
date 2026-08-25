@@ -35,7 +35,7 @@
     "Consultoría Empresarial": "Analizamos su operación para convertir problemas cotidianos en procesos más claros, medibles y sostenibles.",
     "Formalización de Negocios": "Acompañamos la formalización de su emprendimiento para que pueda operar y crecer sobre una base sólida.",
   };
-  const whatsappIcon = (className = "") => `<img class="${className}" src="/assets/whatsapp-jk.png" alt="" aria-hidden="true">`;
+  const whatsappIcon = (className = "") => `<img class="${className}" src="/assets/whatsapp-jk-v2.png" alt="" aria-hidden="true">`;
   const corporateLogo = `<img class="corporate-logo" src="/assets/jk-logo.png" alt="JK Asesores Contables">`;
 
   const nav = (page) => `
