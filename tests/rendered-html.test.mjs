@@ -10,7 +10,7 @@ test("includes the vanilla HTML entrypoint and asset wiring", async () => {
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
-  assert.match(html, /<!doctype html>/i); assert.match(html, /id="vanilla-app"/); assert.match(html, /styles\.css/); assert.match(html, /app\.js/); assert.match(css, /\.public-site/); assert.match(css, /\.app-shell/); assert.match(app, /parseSunatXml/); assert.match(app, /payrollDocument/); assert.match(app, /auth\.login/); assert.match(page, /vanilla-app/); assert.match(packageJson, /vinext/);
+  assert.match(html, /<!doctype html>/i); assert.match(html, /id="vanilla-app"/); assert.match(html, /styles\.css/); assert.match(html, /app\.js/); assert.match(css, /\.public-site/); assert.match(css, /\.app-shell/); assert.match(app, /parseSunatXml/); assert.match(app, /payrollDocument/); assert.match(app, /auth\.login/); assert.match(app, /admin-message-form/); assert.match(app, /birthDate/); assert.match(page, /vanilla-app/); assert.match(packageJson, /vinext/);
 });
 
 test("keeps vanilla modules for authentication, XML, templates and storage", async () => {
@@ -26,8 +26,8 @@ test("ships the multi-section corporate site and supplied image assets", async (
     readFile(new URL("../public/corporate.css", import.meta.url), "utf8"),
   ]);
   for (const word of ["Nosotros", "Servicios", "Equipo", "Contacto", "Contabilidad General", "Outsourcing Contable"]) assert.match(corporateJs, new RegExp(word));
-  assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/);
-  await Promise.all(["hero-accountant.png", "founder-javier.png", "founder-jimm.png", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
+  assert.match(corporateCss, /corporate-hero/); assert.match(corporateCss, /service-catalog/); assert.match(corporateCss, /contact-layout/); assert.match(corporateCss, /site-flyer/); assert.match(corporateJs, /logistica-flyer\.jpeg/);
+  await Promise.all(["hero-accountant.png", "founder-javier.png", "founder-jimm.png", "logistica-flyer.jpeg", "team-maria.png", "team-jorge.png", "team-carla.png"].map((asset) => access(new URL(`../public/assets/${asset}`, import.meta.url))));
 });
 
 test("reads indexed PLAME R08 XML columns without losing amounts", async () => {

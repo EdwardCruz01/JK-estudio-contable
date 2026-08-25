@@ -40,8 +40,8 @@ export const supabase = {
   async signIn(email, password) {
     return request("/auth/v1/token?grant_type=password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
   },
-  async signUp({ name, email, password, company }) {
-    return request("/auth/v1/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, data: { name, company } }) });
+  async signUp({ name, email, password, company, birthDate }) {
+    return request("/auth/v1/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, data: { name, company, birthDate, fecha_nacimiento: birthDate } }) });
   },
   async signOut(token) { if (configured && token) await request("/auth/v1/logout", { method: "POST" }, token); },
   async profile(token, user) {

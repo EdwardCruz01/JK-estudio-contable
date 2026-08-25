@@ -142,7 +142,8 @@
   function view(page, selectedService) {
     const safePage = ["home", "about", "services", "team", "contact"].includes(page) ? page : "home";
     const content = { home: home(), about: about(), services: servicesPage(), team: team(), contact: contact(selectedService) }[safePage];
-    return `<div class="public-site corporate-site">${nav(safePage)}${content}${footer()}</div>`;
+    const flyer = safePage === "home" ? `<div class="site-flyer" role="dialog" aria-modal="true" aria-label="Información destacada"><div class="site-flyer-backdrop" data-close-flyer></div><section class="site-flyer-card"><button class="site-flyer-close" type="button" data-close-flyer aria-label="Cerrar flyer">×</button><img src="/assets/logistica-flyer.jpeg" alt="Soluciones empresariales y gestión estratégica"><div class="site-flyer-copy"><span class="public-eyebrow">JK ASESORES CONTABLES</span><h2>Información clara para mover su empresa.</h2><p>Contabilidad, tributación y gestión con el respaldo que su negocio necesita.</p><button class="gold-button" data-close-flyer>Continuar al sitio</button></div></section></div>` : "";
+    return `<div class="public-site corporate-site">${nav(safePage)}${content}${footer()}${flyer}</div>`;
   }
 
   window.JKCorporate = { view, enableMotion, openServiceSummary };
