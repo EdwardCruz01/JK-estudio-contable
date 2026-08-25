@@ -97,6 +97,34 @@
 .corporate-site .metrics-section{border-color:#cbd5df}
 .corporate-site .metrics-section article{border-color:#cbd5df}
 .corporate-site .metrics-section strong{color:#6e8091}
+.corporate-site .corporate-nav{background:rgba(218,224,231,.97);border-bottom-color:#bfcbd6}
+.corporate-site .public-register{background:linear-gradient(135deg,#ffffff 0%,#e2e8ee 45%,#aebbc8 100%);border:1px solid rgba(255,255,255,.95);color:#102d4b;box-shadow:0 10px 22px rgba(36,59,82,.23)}
+.corporate-site .public-register:hover{background:linear-gradient(135deg,#ffffff 0%,#f3f6f8 45%,#c5d0da 100%);box-shadow:0 14px 28px rgba(21,54,88,.28)}
+.corporate-site .corporate-hero-overlay{background:linear-gradient(90deg,rgba(3,17,32,.97) 0%,rgba(5,24,43,.86) 35%,rgba(8,29,49,.42) 63%,rgba(3,15,28,.12) 83%,rgba(3,15,28,.03) 100%)}
+.corporate-site .client-story-section{width:100%;max-width:none;background:#f4f7fa;padding-left:0;padding-right:0;overflow:hidden}
+.corporate-site .client-story-section>.section-heading{width:min(1080px,calc(100% - 48px));margin-bottom:40px}
+.corporate-site .client-story-section .section-heading h2{color:#102d4b}
+.corporate-site .client-marquee{overflow:hidden;padding:18px 0;border-top:1px solid #cbd5df;border-bottom:1px solid #cbd5df;mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.corporate-site .client-marquee-track{display:flex;width:max-content;gap:18px;animation:jk-client-marquee 24s linear infinite}
+.corporate-site .client-marquee:hover .client-marquee-track{animation-play-state:paused}
+.corporate-site .client-marquee span{display:inline-flex;align-items:center;justify-content:center;min-height:66px;padding:0 34px;border:1px solid #cbd5df;border-radius:16px;background:#fff;color:#49647d;font:600 1.08rem Georgia,serif;white-space:nowrap;box-shadow:0 8px 20px rgba(20,47,75,.05)}
+.corporate-site .client-testimonials{width:min(1340px,calc(100% - 48px));margin:72px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.corporate-site .client-testimonial-card{background:#fff;border:1px solid #cbd5df;border-radius:22px;padding:28px 30px 30px;box-shadow:0 14px 28px rgba(20,47,75,.07);min-height:250px;display:flex;flex-direction:column}
+.corporate-site .client-testimonial-card .quote-mark{font-size:4.2rem;line-height:.75;color:#8eafc8;margin-bottom:18px}
+.corporate-site .client-testimonial-card blockquote{font:1.25rem/1.45 Georgia,serif;color:#173e67;margin:0 0 25px;flex:1}
+.corporate-site .client-testimonial-card cite{font-style:normal;color:#122b45;font-weight:700;border-top:1px solid #d8e0e7;padding-top:18px}
+.corporate-site .client-testimonial-card cite small{display:block;color:#61758a;font:400 .95rem/1.4 system-ui,sans-serif;margin-top:3px}
+.corporate-site .client-story-section>.section-cta{margin-top:42px}
+.corporate-site .client-story-section>.section-cta .gold-button{min-width:190px}
+.corporate-site .metrics-section strong{transition:transform .18s ease,color .18s ease}
+.corporate-site .metrics-section strong.is-counting{transform:scale(1.12);color:#173e67}
+.corporate-site .whatsapp-float{position:fixed;z-index:35;right:28px;bottom:24px;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;text-decoration:none;background:#25c968!important;border:7px solid rgba(224,234,241,.92);box-shadow:0 14px 32px rgba(9,38,65,.24);overflow:hidden;isolation:isolate}
+.corporate-site .whatsapp-float::before{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.34);pointer-events:none;z-index:2}
+.corporate-site .whatsapp-float .whatsapp-logo-image{width:190%;max-width:none;left:-45%;top:-13%;z-index:1}
+@keyframes jk-client-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (max-width:1000px){.corporate-site .client-testimonials{grid-template-columns:1fr 1fr}.corporate-site .client-testimonial-card:last-child{grid-column:1/-1}}
+@media (max-width:680px){.corporate-site .client-story-section{padding-left:0;padding-right:0}.corporate-site .client-story-section>.section-heading{width:calc(100% - 40px)}.corporate-site .client-marquee-track{animation-duration:19s}.corporate-site .client-marquee span{min-height:58px;padding:0 24px;font-size:.95rem}.corporate-site .client-testimonials{width:calc(100% - 40px);grid-template-columns:1fr;margin-top:52px}.corporate-site .client-testimonial-card:last-child{grid-column:auto}.corporate-site .whatsapp-float{right:18px;bottom:18px;width:62px;height:62px}}
+@media (prefers-reduced-motion:reduce){.corporate-site .client-marquee-track{animation:none}}
 .corporate-site .testimonial-banner{background:#0d2945}
 .corporate-site .page-heading h1,.corporate-site .page-hero-copy h1,.corporate-site .about-story h2,.corporate-site .methodology h2,.corporate-site .service-cta h2{color:#102d4b}
 .corporate-site .page-hero-team .page-hero-copy h3,.corporate-site .founder-section h3{color:#466784}

@@ -54,11 +54,10 @@
   function home() {
     return `<main>
       <section class="corporate-hero"><div class="corporate-hero-image" aria-hidden="true"></div><div class="corporate-hero-overlay"></div><div class="corporate-hero-content"><span class="hero-kicker">✣ ESTUDIO CONTABLE PREMIUM</span><h1>Precisión contable con la <em>confianza</em> que su empresa merece.</h1><p>Integramos experiencia, tecnología y una vocación de servicio impecable para gestionar la contabilidad, tributación y planeamiento financiero de su negocio.</p><div class="hero-actions"><button class="gold-button" data-public-page="contact">Cotizar ahora</button><button class="outline-light" data-public-page="about">Conózcanos</button></div></div></section>
-      <section class="client-strip"><span>Empresas que confían en nuestro método</span><div><b>CORPORACIÓN CHÁVEZ</b><b>INVERSIONES ANDINAS</b><b>GRUPO TAMBO</b><b>SERVICIOS ANDINOS</b></div></section>
+      <section class="corporate-section client-story-section"><div class="section-heading centered"><span class="public-eyebrow">NUESTROS CLIENTES</span><h2>Empresas que confían en nosotros</h2><p>La confianza se construye con información oportuna, criterio profesional y acompañamiento constante.</p></div><div class="client-marquee" aria-label="Empresas que confían en Estudio JK"><div class="client-marquee-track"><span>Corporación Chávez</span><span>Inversiones Pacífico</span><span>Grupo Tambo</span><span>Inmobiliaria del Sol</span><span>Servicios Andinos</span><span>Constructora YED</span><span>Comercializadora Trimar</span><span>Transportes Generales DEA</span><span>Corporación Chávez</span><span>Inversiones Pacífico</span><span>Grupo Tambo</span><span>Inmobiliaria del Sol</span><span>Servicios Andinos</span><span>Constructora YED</span><span>Comercializadora Trimar</span><span>Transportes Generales DEA</span></div></div><div class="client-testimonials"><article class="client-testimonial-card"><span class="quote-mark">“</span><blockquote>El nivel de detalle y proactividad del Estudio JK cambió nuestra gestión. Hoy tomamos decisiones con información en tiempo real.</blockquote><cite>Ronald Chávez <small>Gerente General · Corporación Chávez</small></cite></article><article class="client-testimonial-card"><span class="quote-mark">“</span><blockquote>Cero contingencias tributarias en cuatro años. Un equipo profesional, cercano y siempre disponible.</blockquote><cite>María Torres <small>Directora · Inversiones Pacífico</small></cite></article><article class="client-testimonial-card"><span class="quote-mark">“</span><blockquote>Nos formalizaron y hoy nos acompañan en todo. Un verdadero socio estratégico para nuestro crecimiento.</blockquote><cite>Luis Fernández <small>Fundador · Servicios Andinos</small></cite></article></div><div class="section-cta"><button class="gold-button" data-public-page="contact">Conversemos</button></div></section>
       <section class="corporate-section split-intro"><div><span class="public-eyebrow">NUESTRA FORMA DE TRABAJAR</span><h2>Una mirada completa para una gestión más segura.</h2></div><div><p>Convertimos obligaciones contables y tributarias en información útil para que usted tome decisiones con tranquilidad.</p><button class="arrow-link" data-public-page="about">Conozca el estudio <span>→</span></button></div></section>
       <section class="corporate-section muted-section"><div class="section-heading"><span class="public-eyebrow">SERVICIOS DESTACADOS</span><h2>Respaldo técnico para cada reto del negocio.</h2><p>Un portafolio integral, coordinado por especialistas y adaptado al momento de su empresa.</p></div><div class="service-catalog service-catalog-short">${serviceCards(4)}</div><div class="section-cta"><button class="outline-dark" data-public-page="services">Ver todos los servicios</button></div></section>
-      <section class="corporate-section metrics-section"><article><strong>15+</strong><span>Años acompañando empresas</span></article><article><strong>300+</strong><span>Clientes atendidos en Perú</span></article><article><strong>16</strong><span>Soluciones especializadas</span></article><article><strong>24 h</strong><span>Tiempo objetivo de respuesta</span></article></section>
-      <section class="corporate-section testimonial-banner"><div><span class="quote-mark">“</span><blockquote>El nivel de detalle y proactividad del Estudio JK cambió nuestra gestión. Hoy tomamos decisiones con información en tiempo real.</blockquote><cite>Ronald Chávez · Gerente General, Corporación Chávez</cite></div><button class="gold-button" data-public-page="contact">Conversemos</button></section>
+      <section class="corporate-section metrics-section"><article><strong data-counter="15" data-counter-suffix="+">0</strong><span>Años acompañando empresas</span></article><article><strong data-counter="300" data-counter-suffix="+">0</strong><span>Clientes atendidos en Perú</span></article><article><strong data-counter="16">0</strong><span>Soluciones especializadas</span></article><article><strong data-counter="24" data-counter-suffix=" h">0</strong><span>Tiempo objetivo de respuesta</span></article></section>
     </main>`;
   }
 
@@ -98,6 +97,36 @@
       });
     }, { threshold: .13 });
     nodes.forEach((node) => { node.classList.add("reveal-on-scroll"); observer.observe(node); });
+    const counters = site.querySelectorAll("[data-counter]");
+    const animateCounter = (node) => {
+      const target = Number(node.dataset.counter || 0);
+      const suffix = node.dataset.counterSuffix || "";
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+        node.textContent = `${target}${suffix}`;
+        return;
+      }
+      const start = performance.now();
+      const duration = 850;
+      node.classList.add("is-counting");
+      const tick = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        node.textContent = `${Math.round(target * eased)}${suffix}`;
+        if (progress < 1) requestAnimationFrame(tick);
+        else window.setTimeout(() => node.classList.remove("is-counting"), 180);
+      };
+      requestAnimationFrame(tick);
+    };
+    if (counters.length) {
+      const counterObserver = new IntersectionObserver((entries, currentObserver) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          animateCounter(entry.target);
+          currentObserver.unobserve(entry.target);
+        });
+      }, { threshold: .45 });
+      counters.forEach((counter) => counterObserver.observe(counter));
+    }
   }
 
   function openServiceSummary(title) {
