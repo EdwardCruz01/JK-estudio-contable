@@ -188,7 +188,7 @@ async function loadRemoteState() {
 async function submitAuthV2(event) {
   event.preventDefault(); const data = Object.fromEntries(new FormData(event.target).entries()); const error = document.getElementById("auth-error"); const submit = event.target.querySelector("button[type=submit]"); if (submit) submit.disabled = true;
   const result = state.authMode === "register" ? await auth.register(data) : await auth.login(data.email, data.password);
-  if (submit) submit.disabled = false; if (result.error) { error.innerHTML = `<div class="auth-error">${escapeHtml(result.error)}</div>`; return; }
+  if (submit) submit.disabled = false; if (result.registered) { error.innerHTML = `<div class="auth-success">${escapeHtml(result.message)}</div>`; event.target.reset(); return; } if (result.error) { error.innerHTML = `<div class="auth-error">${escapeHtml(result.error)}</div>`; return; }
   state.session = result.session; state.mode = result.session.role === "admin" ? "admin" : "client"; render(); await loadRemoteState();
 }
 
