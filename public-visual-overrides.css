@@ -17,6 +17,11 @@
   background-position: center center;
 }
 
+/* No mostrar credenciales demo en la pantalla pública de acceso. */
+.auth-shell .demo-access {
+  display: none !important;
+}
+
 @media (max-width: 680px) {
   .corporate-site .corporate-hero-content {
     transform: translateY(-8px);
