@@ -1,0 +1,24 @@
+/* Public visual overrides for the latest supplied imagery. */
+.corporate-site .corporate-hero-image {
+  background-image: url('/assets/contenido/jk-cover-2026.png');
+  background-position: center center;
+}
+
+.corporate-site .corporate-hero-content {
+  transform: translateY(-18px);
+}
+
+.corporate-site .page-hero-about .about-photo img {
+  object-position: center center;
+}
+
+.auth-visual {
+  background-image: url('/assets/contenido/jk-auth-2026.png');
+  background-position: center center;
+}
+
+@media (max-width: 680px) {
+  .corporate-site .corporate-hero-content {
+    transform: translateY(-8px);
+  }
+}
