@@ -30,7 +30,11 @@ export const auth = {
   async register({ name, email, password, company, birthDate }) {
     const normalized = email.trim().toLowerCase();
     if (supabase.configured) {
-      try { return await remoteSession(await supabase.signUp({ name: name.trim(), email: normalized, password, company: company.trim(), birthDate })); } catch (error) { return { session: null, error: error.message || "No se pudo crear la cuenta." }; }
+      try {
+        const response = await supabase.signUp({ name: name.trim(), email: normalized, password, company: company.trim(), birthDate });
+        if (response?.user && !response?.access_token && !response?.session) return { session: null, error: null, registered: true, message: "Cuenta creada. Revise su correo para confirmar la cuenta antes de iniciar sesión." };
+        return await remoteSession(response);
+      } catch (error) { return { session: null, error: error.message || "No se pudo crear la cuenta." }; }
     }
     const users = storage.users(); if (normalized === adminEmail || users.some((item) => item.email === normalized)) return { session: null, error: "Este correo ya está registrado." }; if (password.length < 6) return { session: null, error: "La contraseña debe tener al menos 6 caracteres." };
     const user = { id: `client-${Date.now()}`, name: name.trim(), email: normalized, password, company: company.trim(), birthDate, role: "client" }; users.push(user); storage.saveUsers(users); const session = { id: user.id, name: user.name, email: user.email, company: user.company, birthDate, role: "client" }; storage.saveSession(session); return { session, error: null };

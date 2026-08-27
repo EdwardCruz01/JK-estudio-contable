@@ -10,7 +10,7 @@ test("includes the vanilla HTML entrypoint and asset wiring", async () => {
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
-  assert.match(html, /<!doctype html>/i); assert.match(html, /id="vanilla-app"/); assert.match(html, /styles\.css/); assert.match(html, /app\.js/); assert.match(css, /\.public-site/); assert.match(css, /\.app-shell/); assert.match(app, /parseSunatXml/); assert.match(app, /payrollDocument/); assert.match(app, /auth\.login/); assert.match(app, /admin-message-form/); assert.match(app, /birthDate/); assert.match(page, /vanilla-app/); assert.match(packageJson, /vinext/);
+  assert.match(html, /<!doctype html>/i); assert.match(html, /id="vanilla-app"/); assert.match(html, /styles\.css/); assert.match(html, /app\.js/); assert.match(css, /\.public-site/); assert.match(css, /\.app-shell/); assert.match(app, /parseSunatXml/); assert.match(app, /payrollDocument/); assert.match(app, /auth\.login/); assert.match(app, /admin-message-form/); assert.match(app, /birthDate/); assert.match(page, /vanilla-app/); assert.match(packageJson, /vite/);
 });
 
 test("keeps vanilla modules for authentication, XML, templates and storage", async () => {
