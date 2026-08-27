@@ -1,0 +1,139 @@
+.music-player {
+  position: fixed;
+  right: 24px;
+  bottom: 104px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #466784;
+  border-radius: 14px;
+  background: #173e67;
+  color: #f7fafc;
+  box-shadow: 0 12px 28px rgba(8, 29, 50, .25);
+}
+
+.music-player audio { display: none; }
+.music-toggle {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #aebdca;
+  border-radius: 50%;
+  background: #f7fafc;
+  color: #173e67;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.music-toggle:hover { background: #fff; transform: scale(1.04); }
+.music-volume { display: flex; align-items: center; gap: 6px; }
+.music-volume span { font-size: 16px; line-height: 1; }
+.music-volume input { width: 76px; accent-color: #dce3ea; cursor: pointer; }
+
+.inbox-nav-button,
+.profile-button,
+.client-home-button,
+.client-brand-button {
+  border: 0;
+  cursor: pointer;
+}
+.inbox-nav-button {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #cbd5df;
+  border-radius: 50%;
+  background: #f7fafc;
+  color: #173e67;
+  font-size: 17px;
+}
+.inbox-nav-button i {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: #173e67;
+  color: #fff;
+  font: 700 10px/17px Arial, sans-serif;
+  font-style: normal;
+}
+.profile-button {
+  padding: 12px 17px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #f8fafc 0%, #dce3ea 48%, #9eacba 100%);
+  color: #102d4b;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(23, 62, 103, .16);
+}
+.profile-button:hover { filter: brightness(1.04); transform: translateY(-1px); }
+.client-public-actions .quote-button { color: #173e67; }
+
+.client-portal { min-height: 100vh; background: #eef3f7; color: #102d4b; }
+.client-nav {
+  height: 76px;
+  background: #f7fafc;
+  border-bottom: 1px solid #cbd5df;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 max(28px, calc((100vw - 1240px) / 2));
+}
+.client-brand-button { padding: 0; background: transparent; }
+.client-brand-button .corporate-logo { width: 150px; height: 52px; object-fit: contain; object-position: left center; }
+.client-nav-actions { display: flex; align-items: center; gap: 22px; }
+.client-home-button { background: transparent; color: #173e67; font-weight: 700; }
+.client-user { display: flex; align-items: center; gap: 10px; }
+.client-user > span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #dce3ea; color: #173e67; font-weight: 800; }
+.client-user b, .client-user small { display: block; }
+.client-user b { color: #102d4b; font-size: 12px; }
+.client-user small { color: #557089; font-size: 10px; }
+.client-user button { margin-left: 15px; border: 0; background: transparent; color: #173e67; cursor: pointer; }
+.client-main { max-width: 1060px; margin: auto; padding: 74px 28px 90px; }
+.client-welcome h1 { margin: 15px 0 10px; color: #102d4b; font: 500 clamp(42px, 5vw, 62px)/1 Georgia, serif; letter-spacing: -.06em; }
+.client-welcome p { color: #557089; }
+.client-profile-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 20px; margin-top: 42px; align-items: start; }
+.client-card { padding: 28px; border: 1px solid #cbd5df; border-radius: 18px; background: #f7fafc; box-shadow: 0 12px 30px rgba(23, 62, 103, .07); }
+.client-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.client-card-heading small { color: #557089; font-size: 10px; letter-spacing: .18em; }
+.client-card h2 { margin: 11px 0 0; color: #102d4b; font: 500 27px/1.15 Georgia, serif; }
+.client-card .service-icon { width: 42px; height: 42px; margin: 0; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, #f8fafc, #aebbc8); color: #102d4b; }
+.profile-details { display: grid; gap: 0; margin: 28px 0 0; }
+.profile-details div { padding: 14px 0; border-top: 1px solid #dce3ea; }
+.profile-details dt { color: #557089; font-size: 11px; }
+.profile-details dd { margin: 5px 0 0; color: #102d4b; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.client-inbox { grid-column: auto; }
+.client-inbox-list { display: grid; gap: 10px; margin-top: 15px; }
+.client-message { display: grid; grid-template-columns: auto 1fr auto; gap: 13px; align-items: start; padding: 14px 0; border-top: 1px solid #dce3ea; }
+.client-message:first-child { border-top: 0; }
+.client-message > span { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: #dbe8f1; color: #173e67; font-weight: 700; }
+.client-message b { display: block; color: #173e67; }
+.client-message p { margin: 4px 0 0; color: #52677b; line-height: 1.45; }
+.client-message small { color: #7a8a99; white-space: nowrap; }
+.client-help { display: flex; align-items: center; justify-content: space-between; gap: 30px; margin-top: 20px; padding: 30px; border: 1px solid #cbd5df; border-radius: 18px; background: #dbe8f1; }
+.client-help h2 { margin: 9px 0; color: #102d4b; font: 500 29px Georgia, serif; }
+.client-help p { color: #52677b; font-size: 13px; }
+
+@media (max-width: 760px) {
+  .music-player { right: 16px; bottom: 92px; }
+  .music-volume input { width: 58px; }
+  .public-actions.client-public-actions { display: flex; align-items: center; gap: 8px; }
+  .client-public-actions .quote-button { display: none; }
+  .client-public-actions .profile-button { padding: 10px 12px; font-size: 12px; }
+  .client-nav { padding: 0 18px; }
+  .client-brand-button .corporate-logo { width: 118px; }
+  .client-nav-actions { gap: 11px; }
+  .client-home-button { display: none; }
+  .client-user > div { display: none; }
+  .client-user button { margin-left: 4px; }
+  .client-main { padding: 52px 18px 70px; }
+  .client-profile-grid { grid-template-columns: 1fr; margin-top: 30px; }
+  .client-help { display: block; }
+  .client-help .gold-button { display: inline-block; margin-top: 18px; }
+  .client-message { grid-template-columns: auto 1fr; }
+  .client-message small { grid-column: 2; }
+}

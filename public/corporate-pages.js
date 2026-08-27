@@ -38,12 +38,12 @@
   const whatsappIcon = (className = "") => `<img class="${className}" src="/assets/contenido/whatsapp-jk-v2.png" alt="" aria-hidden="true">`;
   const corporateLogo = `<img class="corporate-logo" src="/assets/contenido/jk-logo.png" alt="JK Asesores Contables">`;
 
-  const nav = (page) => `
+  const nav = (page, session, inboxCount = 0) => `
     <header class="public-nav corporate-nav">
       <button class="public-brand" data-public-page="home" aria-label="Ir al inicio">${corporateLogo}</button>
       <button class="mobile-toggle" data-action="mobile" aria-label="Abrir navegación">☰</button>
       <nav class="public-links">${[["home","Inicio"],["about","Nosotros"],["services","Servicios"],["team","Equipo"],["contact","Contacto"]].map(([id, label]) => `<button class="${page === id ? "active" : ""}" data-public-page="${id}">${label}</button>`).join("")}</nav>
-      <div class="public-actions"><button class="quote-button" data-public-page="contact">Cotizar</button><button class="login-link" data-action="login">↪ <span>Iniciar sesión</span></button><button class="gold-button public-register" data-action="register">♙ <span>Registrarse</span></button></div>
+      <div class="public-actions${session?.role === "client" ? " client-public-actions" : ""}"><button class="quote-button" data-public-page="contact">Cotizar</button>${session?.role === "client" ? `<button class="inbox-nav-button" data-action="inbox" aria-label="Abrir bandeja de entrada">✉${inboxCount ? `<i>${inboxCount > 9 ? "9+" : inboxCount}</i>` : ""}</button><button class="profile-button" data-action="profile">Perfil</button>` : `<button class="login-link" data-action="login">↪ <span>Iniciar sesión</span></button><button class="gold-button public-register" data-action="register">♙ <span>Registrarse</span></button>`}</div>
     </header>`;
 
   const footer = () => `<footer class="public-footer corporate-footer"><div class="public-brand">${corporateLogo}</div><div><b>Información clara para decidir mejor.</b><span>Contabilidad, tributación y gestión empresarial.</span></div><div><button data-public-page="contact">Contacto</button><button data-action="login">Panel administrativo</button></div><small>© 2026 JK Asesores Contables. Todos los derechos reservados.</small></footer><a class="whatsapp-float" href="https://wa.me/51950361967" target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp">${whatsappIcon("whatsapp-logo-image")}</a>`;
@@ -84,7 +84,54 @@
     <section class="corporate-section contact-layout"><form id="corporate-contact-form" class="corporate-form"><div class="form-grid"><label>Nombre completo<input required name="name" placeholder="Ej. María Pérez" /></label><label>Correo<input required type="email" name="email" placeholder="correo@empresa.com" /></label><label>Teléfono<input name="phone" placeholder="+51 999 000 000" /></label><label>Empresa<input name="company" placeholder="Razón social" /></label></div><label>Servicio de interés<input id="contact-service" name="service" value="${selectedService || ""}" placeholder="Seleccione o describa el servicio" /></label><label>Mensaje<textarea required name="message" rows="6" placeholder="Cuéntenos brevemente su necesidad"></textarea></label><button class="gold-button" type="submit">✈ Enviar mensaje</button><p class="form-feedback" aria-live="polite"></p></form><aside class="contact-details"><a href="https://maps.google.com/?q=JR.+CHILE+MZ.+A+LT.+7,+SAN+LUIS,+AMARILIS,+HUANUCO" target="_blank" rel="noreferrer"><span>⌖</span><div><small>DIRECCIÓN</small><b>JR. CHILE MZ. A LT. 7, San Luis — Amarilis, Huánuco</b></div></a><a href="mailto:jk.asesorescontables17@gmail.com"><span>✉</span><div><small>CORREO</small><b>jk.asesorescontables17@gmail.com</b></div></a><a href="tel:+51950361967"><span>☎</span><div><small>TELÉFONO</small><b>950 361 967</b></div></a><a href="https://wa.me/51950361967" target="_blank" rel="noreferrer"><span class="whatsapp-inline">${whatsappIcon("whatsapp-logo-image")}</span><div><small>WHATSAPP</small><b>+51 950 361 967</b></div></a><div><span>◷</span><div><small>HORARIO</small><b>Lun a Vie · 9:00 a 18:00 · Sáb 9:00 a 13:00</b></div></div></aside></section>
   </main>`; }
 
+  const musicStorageKeys = { paused: "jk-background-music-paused", volume: "jk-background-music-volume" };
+  const musicFile = "Fleetwood Mac - Gypsy (Official Music Video) [HD] [mwgg1Pu6cNg].mp3";
+
+  function ensureMusicPlayer() {
+    if (document.getElementById("jk-music-player")) return;
+    const player = document.createElement("aside");
+    player.id = "jk-music-player";
+    player.className = "music-player";
+    player.setAttribute("aria-label", "Control de música ambiental");
+    player.innerHTML = `<audio id="jk-site-music" loop preload="auto"></audio><button type="button" class="music-toggle" aria-label="Reproducir música">▶</button><label class="music-volume" aria-label="Volumen"><span>♪</span><input type="range" min="0" max="1" step="0.01" value="0.12"></label>`;
+    document.body.append(player);
+    const audio = player.querySelector("#jk-site-music");
+    const toggle = player.querySelector(".music-toggle");
+    const volume = player.querySelector("input[type=range]");
+    audio.src = `/assets/contenido/musica/${encodeURIComponent(musicFile)}`;
+    const savedVolume = Number(localStorage.getItem(musicStorageKeys.volume));
+    audio.volume = Number.isFinite(savedVolume) && savedVolume >= 0 && savedVolume <= 1 ? savedVolume : 0.12;
+    volume.value = String(audio.volume);
+    const explicitlyPaused = () => localStorage.getItem(musicStorageKeys.paused) === "true";
+    const updateToggle = () => {
+      const isPlaying = !audio.paused;
+      toggle.textContent = isPlaying ? "Ⅱ" : "▶";
+      toggle.setAttribute("aria-label", isPlaying ? "Pausar música" : "Reproducir música");
+      player.classList.toggle("is-playing", isPlaying);
+    };
+    const play = () => audio.play().catch(() => updateToggle());
+    toggle.addEventListener("click", () => {
+      if (audio.paused) {
+        localStorage.setItem(musicStorageKeys.paused, "false");
+        play();
+      } else audio.pause();
+    });
+    volume.addEventListener("input", () => {
+      audio.volume = Number(volume.value);
+      localStorage.setItem(musicStorageKeys.volume, volume.value);
+    });
+    audio.addEventListener("play", () => { localStorage.setItem(musicStorageKeys.paused, "false"); updateToggle(); });
+    audio.addEventListener("pause", () => { localStorage.setItem(musicStorageKeys.paused, "true"); updateToggle(); });
+    audio.addEventListener("error", updateToggle);
+    updateToggle();
+    if (!explicitlyPaused()) {
+      play();
+      document.addEventListener("pointerdown", (event) => { if (event.target.closest?.("#jk-music-player")) return; if (!explicitlyPaused() && audio.paused) play(); }, { once: true, passive: true });
+    }
+  }
+
   function enableMotion(scope = document) {
+    ensureMusicPlayer();
     const site = scope.querySelector?.(".corporate-site") || document.querySelector(".corporate-site");
     site?.querySelectorAll("[data-close-flyer]").forEach((item) => {
       if (item.dataset.flyerBound) return;
@@ -148,12 +195,12 @@
 
   const flyerStorageKey = "jk-public-flyer-dismissed-v2";
 
-  function view(page, selectedService) {
+  function view(page, selectedService, session, inboxCount) {
     const safePage = ["home", "about", "services", "team", "contact"].includes(page) ? page : "home";
     const content = { home: home(), about: about(), services: servicesPage(), team: team(), contact: contact(selectedService) }[safePage];
     const flyerDismissed = typeof localStorage !== "undefined" && localStorage.getItem(flyerStorageKey);
     const flyer = safePage === "home" && !flyerDismissed ? `<div class="site-flyer" role="dialog" aria-modal="true" aria-label="Información destacada"><div class="site-flyer-backdrop" data-close-flyer></div><section class="site-flyer-card"><button class="site-flyer-close" type="button" data-close-flyer aria-label="Cerrar flyer">×</button><img src="/assets/contenido/jk-home-flyer-2026.jpg" alt="Cambios en facturación y comprobante por nota SUNAT 2026"><div class="site-flyer-copy"><span class="public-eyebrow">ACTUALIZACIÓN TRIBUTARIA</span><h2>Cambios de facturación 2026.</h2><p>Conozca las novedades que pueden impactar la gestión contable de su empresa.</p><button class="gold-button" data-close-flyer>Continuar al sitio</button></div></section></div>` : "";
-    return `<div class="public-site corporate-site">${nav(safePage)}${content}${footer()}${flyer}</div>`;
+     return `<div class="public-site corporate-site">${nav(safePage, session, inboxCount)}${content}${footer()}${flyer}</div>`;
   }
 
   window.JKCorporate = { view, enableMotion, openServiceSummary };
